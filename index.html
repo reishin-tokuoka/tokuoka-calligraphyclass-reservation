@@ -50,6 +50,8 @@
       const params = new URLSearchParams(window.location.search);
       const mode = params.get("mode");
 
+      // 運用中に設定変更したときに、versionを変更（YYYY-MM-DD-01）して、自動キャッシュを無効化する。
+      const APP_VERSION = "VERSION_001";
       let userId = "INIT_USER_ID";
       let displayName = "INIT_USER_NAME";
 
@@ -60,11 +62,8 @@
         // ⭐ ③ まずメイン画面だけ表示（超高速化のポイント）
         document.getElementById("main").classList.remove("hidden");
 
-        // ⭐ appInfo 取得 (version)
-        const appInfo = await loadAppInfo();
-
         // ⭐ GAS 取得（キャッシュ対応）
-        const config = await loadConfig(appInfo.VERSION);
+        const config = await loadConfig();
         console.log(config);
         
         // ⭐ LIFF 初期化（速い）
@@ -81,19 +80,10 @@
       }
 
       // ------------------------------
-      // versionを取得
-      // ------------------------------
-      async function loadAppInfo() {
-        const res = await fetch(GAS_BASE_URL + "?mode=appinfo");
-        const json = await res.json();
-        return json;
-      }
-
-      // ------------------------------
       // GAS 設定をキャッシュ付きで取得
       // ------------------------------
-      async function loadConfig(appVersion) {
-        const cacheKey = "configCacheV1" + appVersion;
+      async function loadConfig() {
+        const cacheKey = "configCacheV1" + APP_VERSION;
 
         // キャッシュがあれば即返却
         const cache = localStorage.getItem(cacheKey);
