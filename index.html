@@ -48,7 +48,9 @@
     </div>
 
     <script>
-      const mode = <?= mode ?>;
+      const params = new URLSearchParams(window.location.search);
+      const mode = params.get("mode");
+      //const mode = <?= mode ?>;
 
       // 運用中に設定変更したときに、versionを変更（YYYY-MM-DD-01）して、自動キャッシュを無効化する。
       const APP_VERSION = "2025-11-29-02";
