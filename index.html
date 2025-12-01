@@ -47,8 +47,7 @@
     </div>
 
     <script>
-      const params = new URLSearchParams(window.location.search);
-      const mode = params.get("mode");
+      let mode = "";
 
       // 運用中に設定変更したときに、versionを変更（YYYY-MM-DD-01）して、自動キャッシュを無効化する。
       const APP_VERSION = "VERSION_001";
@@ -70,6 +69,7 @@
         await liff.init({ liffId: config.LIFF_ID })
             .then(() => {
               console.log('LIFF init succeeded.');
+              mode = getModeFromState();
             })
             .catch((err) => {
               console.error('LIFF init failed', err);
@@ -264,6 +264,20 @@
               .catch((err) => {
                   console.error('Error sending message:', err);
               });
+      }
+
+      // LIFF SDKが初期化された後 (liff.init() の後に実行すること
+      function getModeFromState() {
+        const context = liff.getContext();
+        if (context && context.type === 'external' && context.state) {
+          const liffStateValue = context.state; 
+          if (liffStateValue === 'reservation') {
+            return 'reservation';
+          } else {
+            return 'list';
+          }
+        }
+        return 'default';
       }
 
       // ------------------------------
