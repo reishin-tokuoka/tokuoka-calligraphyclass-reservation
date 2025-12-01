@@ -17,7 +17,6 @@
     <div id="main" class="hidden">
       <h1>LINE 予約システム</h1>
       <div id="loading">読み込み中です…</div>
-      <div id="errorLog"></div>
 
       <!-- ▼ 初回ユーザ UI -->
       <div id="user-select" class="hidden">
@@ -50,12 +49,11 @@
     <script>
       const params = new URLSearchParams(window.location.search);
       const mode = params.get("mode");
-      //const mode = <?= mode ?>;
 
       // 運用中に設定変更したときに、versionを変更（YYYY-MM-DD-01）して、自動キャッシュを無効化する。
-      const APP_VERSION = "2025-11-29-02";
-      let userId = "TEST_USER_006";
-      let displayName = "TEST_NAME_006";
+      const APP_VERSION = "VERSION_001";
+      let userId = "INIT_USER_ID";
+      let displayName = "INIT_USER_NAME";
 
       const GAS_BASE_URL = "https://script.google.com/macros/s/AKfycbx_xi_S3rK5X0jFiqfi_Hf8m3RdZbpiLG9W0T27TiW3avS1ArKuDBHznuDvSw7HbUvB/exec";
       const GAS_CONFIG_URL = GAS_BASE_URL + "?mode=config";
@@ -65,25 +63,19 @@
         // ⭐ ③ まずメイン画面だけ表示（超高速化のポイント）
         document.getElementById("main").classList.remove("hidden");
 
-        // ⭐ LIFF 初期化（速い）
-        await liff.init({ liffId: "2008592728-NkK9OenD" })
-            .then(() => {
-            // 【✅ 初期化成功】
-            isLiffInitialized = true;
-            console.log('LIFF init succeeded.');
-            // ここで初期化後の処理（例: sendMessagesの呼び出しなど）を開始する
-            })
-            .catch((err) => {
-              // 【❌ 初期化失敗】
-              isLiffInitialized = false;
-              console.error('LIFF init failed', err);
-              // 失敗時のエラーハンドリングを行う
-            });
-
         // ⭐ GAS 取得（キャッシュ対応）
         const config = await loadConfig();
         console.log(config);
-
+        
+        // ⭐ LIFF 初期化（速い）
+        await liff.init({ liffId: config.LIFF_ID })
+            .then(() => {
+              console.log('LIFF init succeeded.');
+            })
+            .catch((err) => {
+              console.error('LIFF init failed', err);
+            });
+        
         // ⭐ プロフィール取得（裏で実行）
         initUser(config);
       }
@@ -112,16 +104,15 @@
       // ユーザー情報取得
       // ------------------------------
       async function initUser(config) {
-
-        if (config.DEV_FLAG === "false") {
-          try {
-            const profile = await liff.getProfile();
-            userId = profile.userId;
-            displayName = profile.displayName;
-          } catch (e) {
-            console.error("LIFF profile error:", e);
-          }
+        
+        try {
+          const profile = await liff.getProfile();
+          userId = profile.userId;
+          displayName = profile.displayName;
+        } catch (e) {
+          console.error("LIFF profile error:", e);
         }
+        
         // ユーザー情報を GAS から取得（なければ、usersシートに登録）
         const userInfo = await fetchUserInfo(userId);
         
@@ -261,18 +252,11 @@
       function sendResigterResultMessage(className, limitCount, messageText) {
           // 1. LIFFが初期化されているか、かつLINEアプリ内で動作しているかを確認
           if (!liff.isInClient()) {
-              errorMs = document.getElementById("errorLog");
-              errorMs.innerHTML = 'この機能はLINEアプリ内で起動した場合のみ利用可能です1。';
+              alert("LINEアプリ内でのみ実行可能です。");
               return;
           }
-              
-          const messages = [{
-              type: 'text',
-              text: messageText
-          }];
-
-          // 3. メッセージを送信
-          liff.sendMessages(messages)
+          // 2. メッセージを送信
+          liff.sendMessages([{ type: 'text', text: messageText }])
               .then(() => {
                   console.log('Message sent successfully!');
                   // オプション: 送信後、LIFFウィンドウを閉じる
@@ -280,8 +264,6 @@
               })
               .catch((err) => {
                   console.error('Error sending message:', err);
-                  errorMs = document.getElementById("errorLog");
-                  errorMs.innerHTML = 'この機能はLINEアプリ内で起動した場合のみ利用可能です2';
               });
       }
 
