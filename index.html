@@ -12,7 +12,8 @@
     </style>
   </head>
   <body>
-    
+    <div id="errordisp"></div>
+
     <!-- ② メイン画面（後で表示） -->
     <div id="main" class="hidden">
       <h1>LINE 予約システム</h1>
@@ -50,7 +51,7 @@
       let mode = "default";
 
       // 運用中に設定変更したときに、versionを変更（YYYY-MM-DD-01）して、自動キャッシュを無効化する。
-      const APP_VERSION = "VERSION_001";
+      const APP_VERSION = "VERSION_002";
       let userId = "INIT_USER_ID";
       let displayName = "INIT_USER_NAME";
 
@@ -66,17 +67,19 @@
         console.log(config);
         
         // ⭐ LIFF 初期化（速い）
-        await liff.init({ liffId: config.LIFF_ID })
-            .then(() => {
-              console.log('LIFF init succeeded.');
-              mode = getMode();
-            })
-            .catch((err) => {
-              console.error('LIFF init failed', err);
-            });
-        
-        // ⭐ プロフィール取得（裏で実行）
-        initUser(config);
+        // LIFFの初期化に失敗したら、処理を中断する（throwするか、ユーザーにエラーを表示）
+        try {
+            await liff.init({ liffId: config.LIFF_ID });
+            console.log('LIFF init succeeded.');
+            
+            // 成功した場合のみ、モード取得とユーザー情報取得へ進む
+            mode = getMode() || "default"; // getMode() が undefined の場合、'default'
+            await initUser(config);
+
+        } catch (err) {
+            console.error('LIFF init failed or subsequent process failed:', err);
+            document.getElementById("errordisp").textContent = "初期化に失敗しました。LINEアプリの設定をご確認ください。";
+        }
       }
 
       // ------------------------------
