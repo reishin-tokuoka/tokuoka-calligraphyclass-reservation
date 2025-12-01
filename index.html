@@ -1,0 +1,309 @@
+  <!DOCTYPE html>
+  <html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <title>予約システム（高速版）</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
+    <style>
+      .hidden { display: none; }
+      #loading { padding: 20px; font-size: 18px; }
+    </style>
+  </head>
+  <body>
+    
+    <!-- ② メイン画面（後で表示） -->
+    <div id="main" class="hidden">
+      <h1>LINE 予約システム</h1>
+      <div id="loading">読み込み中です…</div>
+      <div id="errorLog"></div>
+
+      <!-- ▼ 初回ユーザ UI -->
+      <div id="user-select" class="hidden">
+        <h3>クラスを選択</h3>
+        <select id="classSelect">
+          <option value="">選択してください</option>
+        </select>
+
+        <h3>回数を選択</h3>
+        <select id="countSelect" disabled>
+          <option value="">クラスを先に選んでください</option>
+        </select>
+
+        <button id="classSubmitBtn" class="hidden">登録する</button>
+      </div>
+
+      <!-- 予約画面 -->
+      <div id="reservationArea" class="hidden">
+        <h2>授業予約</h2>
+        （ここに予約画面のコンテンツ）
+      </div>
+
+      <!-- 一覧画面 -->
+      <div id="listArea" class="hidden">
+        <h2>予約一覧</h2>
+        （ここに一覧画面のコンテンツ）
+      </div>
+    </div>
+
+    <script>
+      const mode = <?= mode ?>;
+
+      // 運用中に設定変更したときに、versionを変更（YYYY-MM-DD-01）して、自動キャッシュを無効化する。
+      const APP_VERSION = "2025-11-29-02";
+      let userId = "TEST_USER_006";
+      let displayName = "TEST_NAME_006";
+
+      const GAS_BASE_URL = "https://script.google.com/macros/s/AKfycbx_xi_S3rK5X0jFiqfi_Hf8m3RdZbpiLG9W0T27TiW3avS1ArKuDBHznuDvSw7HbUvB/exec";
+      const GAS_CONFIG_URL = GAS_BASE_URL + "?mode=config";
+
+      document.addEventListener("DOMContentLoaded", main);
+      async function main() {
+        // ⭐ ③ まずメイン画面だけ表示（超高速化のポイント）
+        document.getElementById("main").classList.remove("hidden");
+
+        // ⭐ LIFF 初期化（速い）
+        await liff.init({ liffId: "2008575105-lGpBOonb" })
+            .then(() => {
+            // 【✅ 初期化成功】
+            isLiffInitialized = true;
+            console.log('LIFF init succeeded.');
+            // ここで初期化後の処理（例: sendMessagesの呼び出しなど）を開始する
+            })
+            .catch((err) => {
+              // 【❌ 初期化失敗】
+              isLiffInitialized = false;
+              console.error('LIFF init failed', err);
+              // 失敗時のエラーハンドリングを行う
+            });
+
+        // ⭐ GAS 取得（キャッシュ対応）
+        const config = await loadConfig();
+        console.log(config);
+
+        // ⭐ プロフィール取得（裏で実行）
+        initUser(config);
+      }
+
+      // ------------------------------
+      // GAS 設定をキャッシュ付きで取得
+      // ------------------------------
+      async function loadConfig() {
+        const cacheKey = "configCacheV1" + APP_VERSION;
+
+        // キャッシュがあれば即返却
+        const cache = localStorage.getItem(cacheKey);
+        if (cache) {
+          return JSON.parse(cache);
+        }
+
+        // キャッシュがなければfetch
+        const res = await fetch(GAS_CONFIG_URL);
+        const json = await res.json();
+        localStorage.setItem(cacheKey, JSON.stringify(json));
+
+        return json;
+      }
+
+      // ------------------------------
+      // ユーザー情報取得
+      // ------------------------------
+      async function initUser(config) {
+
+        if (config.DEV_FLAG === "false") {
+          try {
+            const profile = await liff.getProfile();
+            userId = profile.userId;
+            displayName = profile.displayName;
+          } catch (e) {
+            console.error("LIFF profile error:", e);
+          }
+        }
+        // ユーザー情報を GAS から取得（なければ、usersシートに登録）
+        const userInfo = await fetchUserInfo(userId);
+        
+        document.getElementById("loading").classList.add("hidden");
+        if (!userInfo.exists) {
+          // ユーザー未登録 → クラス選択画面を表示
+          document.getElementById("user-select").classList.remove("hidden");
+          setupClassSelect(config);
+        } else {
+          // 登録済み → 通常画面のまま
+          document.getElementById("user-select").classList.add("hidden");
+          switchPage(mode, false);
+        }
+      }
+
+      // -----------------------------
+      // ユーザ情報取得（高速）
+      // -----------------------------
+      async function fetchUserInfo(userId) {
+        const payload = { 
+          mode: "userinfo", 
+          userId: userId 
+        };
+        const formBody = new URLSearchParams(payload);
+        const res = await fetch(GAS_BASE_URL, {
+          method: "POST", 
+          headers: { "Content-Type": "application/x-www-form-urlencoded" }, 
+          body: formBody
+        });
+
+        return await res.json();
+      }
+
+      // -----------------------------
+      // 登録授業情報選択画面の表示処理
+      // -----------------------------
+      function setupClassSelect(config) {
+        const classSelect = document.getElementById("classSelect");
+        const countSelect = document.getElementById("countSelect");
+        const submitBtn = document.getElementById("classSubmitBtn");
+
+        // ★ クラス名を config から生成
+        const classNames = config.CLASS_INFO.CLASS_NAME;
+        classSelect.innerHTML = `<option value="">選択してください</option>`;
+        classNames.forEach((name, index) => {
+          classSelect.innerHTML += `<option value="${index}">${name}</option>`;
+        });
+
+        classSelect.addEventListener("change", () => {
+          const idx = classSelect.value;
+
+          if (idx === "") {
+            countSelect.disabled = true;
+            submitBtn.classList.add("hidden");
+            countSelect.innerHTML = `
+              <option value="">クラスを先に選んでください</option>`;
+            return;
+          }
+
+          // ★ 上限回数を config から取得
+          const upperArray = config.CLASS_INFO.UPPER_LIMIT_NUMBER;
+
+          countSelect.disabled = false;
+          countSelect.innerHTML = `<option value="">選択してください</option>`;
+
+          upperArray.forEach(n => {
+            countSelect.innerHTML += `<option value="${n}">${n}回</option>`;
+          })
+
+          // ボタンは回数を選ぶまで非表示
+          submitBtn.classList.add("hidden");
+        });
+
+        // ▼ countSelect が変更されたとき
+        countSelect.addEventListener("change", () => {
+          if (countSelect.value !== "") {
+            submitBtn.classList.remove("hidden");
+          } else {
+            submitBtn.classList.add("hidden");
+          }
+        });
+
+        // ▼ 送信ボタン押下 → GAS に登録
+        submitBtn.addEventListener("click", () => {
+          const selectedClassIndex = classSelect.value;
+          const selectedUpperLimitCount = countSelect.value;
+          registerUserClass(selectedClassIndex, selectedUpperLimitCount, config);
+        });
+      }
+
+      // -----------------------------
+      // ユーザ情報の登録(GAS → スプレッドシート)
+      // -----------------------------
+      async function registerUserClass(classIndex, upperLimitCount, config) {
+        const className = config.CLASS_INFO.CLASS_NAME[classIndex];
+
+        // 送信データをオブジェクトでまとめる
+        const payload = {
+          mode: "registerUserInfo",
+          userId: userId,
+          displayName: displayName,
+          className: className,
+          upperLimitCount: upperLimitCount
+        };
+        
+        const formBody = new URLSearchParams(payload);
+        try {
+          const res = await fetch(GAS_BASE_URL, { 
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: formBody
+          });
+
+          const json = await res.json();
+          console.log(json);
+
+          let messageText = "";
+          if (json.success) {
+            messageText = "クラスの登録が完了しました！";
+            sendResigterResultMessage(className, upperLimitCount, messageText);
+            switchPage(mode, true);
+          } else {
+            messageText = "クラスの登録に失敗しました！";
+            sendResigterResultMessage("", "", messageText);
+          }
+        } catch (e) {
+          alert("通信エラーが発生しました");
+          console.log(e);
+        }
+      }
+
+      /**
+       * 登録時のメッセージをユーザーのトーク画面に送信する
+       * @param {string} className - 登録されたクラス名
+       * @param {number} limitCount - 設定された上限回数
+       */
+      function sendResigterResultMessage(className, limitCount, messageText) {
+          // 1. LIFFが初期化されているか、かつLINEアプリ内で動作しているかを確認
+          if (!liff.isInClient()) {
+              errorMs = document.getElementById("errorLog");
+              errorMs.innerHTML = 'この機能はLINEアプリ内で起動した場合のみ利用可能です1。';
+              return;
+          }
+              
+          const messages = [{
+              type: 'text',
+              text: messageText
+          }];
+
+          // 3. メッセージを送信
+          liff.sendMessages(messages)
+              .then(() => {
+                  console.log('Message sent successfully!');
+                  // オプション: 送信後、LIFFウィンドウを閉じる
+                  liff.closeWindow();
+              })
+              .catch((err) => {
+                  console.error('Error sending message:', err);
+                  errorMs = document.getElementById("errorLog");
+                  errorMs.innerHTML = 'この機能はLINEアプリ内で起動した場合のみ利用可能です2';
+              });
+      }
+
+      // ------------------------------
+      // 画面切り替え
+      // ------------------------------
+      function switchPage(mode, registerFlag) {
+        const reservation = document.getElementById("reservationArea");
+        const list = document.getElementById("listArea");
+
+        if (registerFlag) {
+          const userSelect = document.getElementById("user-select");
+          userSelect.classList.add("hidden");
+        }
+
+        if (mode === "list") {
+          reservation.classList.add("hidden");
+          list.classList.remove("hidden");
+        } else {
+          list.classList.add("hidden");
+          reservation.classList.remove("hidden");
+        }
+      }
+    </script>
+  </body>
+  </html>
+
