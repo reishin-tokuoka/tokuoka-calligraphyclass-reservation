@@ -1,3 +1,189 @@
+/* ==================================== */
+/* 1. 基本設定とヘッダー */
+/* ==================================== */
 body {
-  background-color: yellow;
+    font-family: sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f0f3f5; /* LINEの背景色に近い色 */
+}
+
+h1 {
+    text-align: center;
+    padding-top: 15px;
+    color: #333;
+}
+
+/* ==================================== */
+/* 2. カレンダーエリア */
+/* ==================================== */
+.calendar-area { 
+    background-color: white; 
+    padding: 10px; 
+    margin-bottom: 10px; 
+    border-bottom: 1px solid #e0e0e0; 
+}
+
+.calendar-nav { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    margin-bottom: 10px; 
+    font-weight: bold; 
+}
+
+.calendar-grid { 
+    display: grid; 
+    grid-template-columns: repeat(7, 1fr); 
+    text-align: center; 
+    font-size: 14px; 
+}
+
+.day-header { 
+    font-weight: normal; 
+    color: #888; 
+    padding: 5px 0; 
+}
+
+.date-cell {
+    padding: 5px 0;
+}
+
+/* 予約がある日と今日 */
+.reserved-day { 
+    color: white; 
+    background-color: #5D4037; /* 墨色イメージ */ 
+    border-radius: 50%; 
+    width: 30px; 
+    height: 30px; 
+    line-height: 30px; 
+    margin: 0 auto; 
+    font-weight: bold; 
+    display: block;
+}
+.today { 
+    border: 2px solid #00b900; 
+    border-radius: 50%; 
+    width: 26px; 
+    height: 26px; 
+    line-height: 26px; 
+    margin: 0 auto; 
+    display: block;
+}
+
+/* ==================================== */
+/* 3. 予約リストエリア */
+/* ==================================== */
+.reservation-item { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    background-color: white; 
+    padding: 15px; 
+    border-bottom: 1px solid #e0e0e0; 
+}
+
+.date-time { 
+    font-size: 17px; 
+    font-weight: bold; 
+    color: #333; 
+}
+
+.lesson-name { 
+    font-size: 14px; 
+    color: #555; 
+    margin-top: 4px; 
+}
+
+.cancel-area { 
+    text-align: right; 
+    margin-left: 10px; 
+}
+
+.cancel-button { 
+    background: none; 
+    border: 1px solid #ccc; 
+    color: #e53935; /* 赤色 */ 
+    padding: 6px 10px; 
+    border-radius: 5px; 
+    cursor: pointer; 
+    font-size: 13px; 
+    font-weight: bold; 
+}
+
+.cancel-limit { 
+    font-size: 10px; 
+    color: #888; 
+    margin-top: 4px; 
+    display: block; 
+}
+
+.cancelled-item { 
+    opacity: 0.5; 
+}
+
+/* ==================================== */
+/* 4. カスタムモーダル */
+/* ==================================== */
+.modal-overlay { 
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%; 
+    background-color: rgba(0, 0, 0, 0.6); 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    z-index: 1000; 
+}
+
+.modal-content { 
+    background-color: white; 
+    border-radius: 8px; 
+    padding: 25px; 
+    width: 85%; 
+    max-width: 380px; 
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); 
+    text-align: center; 
+}
+
+.modal-title { 
+    font-size: 18px; 
+    font-weight: bold; 
+    color: #333; 
+    margin-bottom: 15px; 
+}
+
+.modal-message { 
+    font-size: 15px; 
+    color: #555; 
+    line-height: 1.5; 
+    margin-bottom: 25px; 
+}
+
+.modal-actions { 
+    display: flex; 
+    justify-content: space-around; 
+    gap: 10px; 
+}
+
+.modal-button { 
+    flex: 1; 
+    padding: 12px 15px; 
+    border: none; 
+    border-radius: 6px; 
+    font-size: 16px; 
+    cursor: pointer; 
+    font-weight: bold; 
+}
+
+.modal-button.modal-cancel { 
+    background-color: #e0e0e0; 
+    color: #555; 
+}
+
+.modal-button.modal-confirm { 
+    background-color: #00b900; 
+    color: white; 
 }
