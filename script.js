@@ -459,7 +459,7 @@ async function executeCancellation(reservationId) {
 // ------------------------------
 // カスタムモーダル表示ロジック
 // ------------------------------
-const showCustomModal = (title, message, onConfirm, onCancel = null) => {
+const showCustomModal = (title, message, onConfirm) => {
     modalTitle.textContent = title;
     modalMessage.textContent = message;
 
@@ -477,16 +477,19 @@ const hideCustomModal = () => {
 // ====================================
 function setupModalListeners() {
     // 承認ボタンの処理
-    modalConfirmBtn.addEventListener('click', () => {
-        hideCustomModal();
+    modalConfirmBtn.addEventListener('click', async () => {
         if (currentConfirmCallback) {
-            currentConfirmCallback();
+            try {
+                await currentConfirmCallback();
+            } catch (error) {
+                console.error("Confirm callback failed:", error);
+            }
         }
+        hideCustomModal();
     });
 
     // キャンセルボタンの処理
     modalCancelBtn.addEventListener('click', () => {
         hideCustomModal();
-        // onCancel コールバックがある場合は実行する（handleCancelでは使っていないが、将来のために残す）
     });
 }
