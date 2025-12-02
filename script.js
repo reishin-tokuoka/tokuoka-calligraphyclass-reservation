@@ -54,6 +54,8 @@ async function main() {
         mode = getMode() || "default";
         await initUser(config);
 
+        setupModalListeners();
+
     } catch (err) {
         console.error('LIFF init failed or subsequent process failed:', err);
         document.getElementById("errordisp").textContent = "初期化に失敗しました。LINEアプリの設定をご確認ください。";
@@ -379,7 +381,7 @@ function renderReservationList() {
 // 予約アイテムのHTML生成
 // ------------------------------
 function createReservationItem(reservation) {
-    const { id, date, duration, lessonName, cancellableUntil, status } = reservation;
+    const { id, date, duration, className, cancellableUntil, status } = reservation;
     
     const lessonStart = new Date(date);
     const lessonEnd = new Date(lessonStart.getTime() + duration * 60000); 
@@ -398,7 +400,7 @@ function createReservationItem(reservation) {
     item.innerHTML = `
         <div class="item-details">
             <div class="date-time">${formattedTime}</div>
-            <div class="lesson-name">${lessonName}</div>
+            <div class="lesson-name">${className}</div>
         </div>
         <div class="cancel-area">
             ${isCancellable ? `
@@ -462,23 +464,6 @@ const showCustomModal = (title, message, onConfirm, onCancel = null) => {
     modalMessage.textContent = message;
 
     currentConfirmCallback = onConfirm; 
-
-    modalConfirmBtn.onclick = null;
-    modalCancelBtn.onclick = null;
-
-    modalConfirmBtn.onclick = () => {
-        hideCustomModal();
-        if (currentConfirmCallback) {
-            currentConfirmCallback();
-        }
-    };
-    modalCancelBtn.onclick = () => {
-        hideCustomModal();
-        if (onCancel) {
-             onCancel();
-        }
-    };
-
     customModal.classList.remove('hidden');
 };
 
@@ -486,3 +471,22 @@ const hideCustomModal = () => {
     customModal.classList.add('hidden');
     currentConfirmCallback = null;
 };
+
+// ====================================
+// 4. カスタムモーダル イベントリスナー設定
+// ====================================
+function setupModalListeners() {
+    // 承認ボタンの処理
+    modalConfirmBtn.addEventListener('click', () => {
+        hideCustomModal();
+        if (currentConfirmCallback) {
+            currentConfirmCallback();
+        }
+    });
+
+    // キャンセルボタンの処理
+    modalCancelBtn.addEventListener('click', () => {
+        hideCustomModal();
+        // onCancel コールバックがある場合は実行する（handleCancelでは使っていないが、将来のために残す）
+    });
+}
