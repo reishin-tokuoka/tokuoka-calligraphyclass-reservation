@@ -15,6 +15,7 @@ const GAS_BASE_URL = "https://script.google.com/macros/s/AKfycbzyr19cHSDB7YJZhrm
 let RESERVATION_DATA = []; // 予約データを格納
 let currentCalendarDate = new Date(); // カレンダーの表示月を管理
 const TODAY_STRING = new Date().toISOString().split('T')[0];
+const MAX_RESERVABLE_MONTHS = 2; // (今月、来月)
 
 // DOM要素
 const calendarGrid = document.getElementById('calendar-grid');
@@ -302,6 +303,11 @@ async function fetchReservations() {
 async function renderReservationListScreen() {
     await fetchReservations();
 
+    // 月が予約可能範囲外でないかチェックし、範囲外であれば今月へリセット
+    if (!isMonthInAllowedRange(currentCalendarDate)) {
+        currentCalendarDate = new Date();
+    }
+
     renderCalendar(currentCalendarDate);
     renderReservationList();
     
@@ -310,10 +316,12 @@ async function renderReservationListScreen() {
         prevMonthBtn.addEventListener('click', () => {
             currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
             renderCalendar(currentCalendarDate);
+            renderReservationList();
         });
         nextMonthBtn.addEventListener('click', () => {
             currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
             renderCalendar(currentCalendarDate);
+            renderReservationList();
         });
         prevMonthBtn.setAttribute('data-listener', 'true');
     }
@@ -323,6 +331,7 @@ async function renderReservationListScreen() {
 // カレンダー描画ロジック
 // ------------------------------
 function renderCalendar(date) {
+    const today = new Date();
     const year = date.getFullYear();
     const month = date.getMonth(); 
     
@@ -341,17 +350,37 @@ function renderCalendar(date) {
     for (let day = 1; day <= lastDayOfMonth.getDate(); day++) {
         const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         
+        const isPastDay = new Date(dateString) < new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
         const isReserved = RESERVATION_DATA.some(res => new Date(res.date).toISOString().startsWith(dateString));
         const isToday = dateString === TODAY_STRING;
         
         let classList = '';
         if (isReserved) classList += 'reserved-day';
         if (isToday) classList += (isReserved ? ' ' : '') + 'today';
+        if (isPastDay) classList += (classList ? ' ' : '') + 'past-day';
 
         calendarGrid.innerHTML += `
             <div class="date-cell">
                 <span class="${classList}" data-date="${dateString}">${day}</span>
             </div>`;
+    }
+
+    const currentMonthOnly = new Date(year, month, 1);
+    const nextMonthOnly = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+
+    // 前月ボタン: 今月が表示されている場合は非表示
+    if (currentMonthOnly.getTime() <= new Date(today.getFullYear(), today.getMonth(), 1).getTime()) {
+        prevMonthBtn.style.visibility = 'hidden';
+    } else {
+        prevMonthBtn.style.visibility = 'visible';
+    }
+
+    // 次月ボタン: 予約可能範囲の最終月（来月）が表示されている場合は非表示
+    if (currentMonthOnly.getTime() >= nextMonthOnly.getTime()) {
+        nextMonthBtn.style.visibility = 'hidden';
+    } else {
+        nextMonthBtn.style.visibility = 'visible';
     }
 }
 
@@ -363,6 +392,8 @@ function renderReservationList() {
 
     const futureReservations = RESERVATION_DATA
         .filter(res => new Date(res.date) >= new Date())
+        // ステータスが「キャンセル済み」ではないものに絞り込む
+        .filter(res => res.status !== 'キャンセル済み')
         .sort((a, b) => new Date(a.date) - new Date(b.date));
 
     if (futureReservations.length === 0) {
@@ -478,6 +509,7 @@ const hideCustomModal = () => {
 function setupModalListeners() {
     // 承認ボタンの処理
     modalConfirmBtn.addEventListener('click', async () => {
+        customModal.classList.add('hidden');
         if (currentConfirmCallback) {
             try {
                 await currentConfirmCallback();
@@ -485,11 +517,27 @@ function setupModalListeners() {
                 console.error("Confirm callback failed:", error);
             }
         }
-        hideCustomModal();
+        currentConfirmCallback = null;
     });
 
     // キャンセルボタンの処理
     modalCancelBtn.addEventListener('click', () => {
-        hideCustomModal();
+        hideCustomModal(true);
     });
+}
+
+// ------------------------------
+// カレンダー表示月が許容範囲内か判定
+// ------------------------------
+function isMonthInAllowedRange(date) {
+    const today = new Date();
+    // 比較のために日時をリセット (年と月のみで比較)
+    const currentMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+    const startMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    
+    // 予約可能な最終月（来月）
+    const endMonth = new Date(today.getFullYear(), today.getMonth() + MAX_RESERVABLE_MONTHS - 1, 1);
+
+    // 今月以降、かつ予約可能な最終月以前であるか
+    return currentMonth >= startMonth && currentMonth <= endMonth;
 }
