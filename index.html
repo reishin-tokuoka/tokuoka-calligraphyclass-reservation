@@ -48,12 +48,16 @@
     </div>
 
     <script>
+      // 予約画面 or 予約一覧の判別用
       let mode = "default";
 
       // 運用中に設定変更したときに、versionを変更（YYYY-MM-DD-01）して、自動キャッシュを無効化する。
       const APP_VERSION = "VERSION_002";
+
       let userId = "INIT_USER_ID";
       let displayName = "INIT_USER_NAME";
+      let userClassName = "";
+      let userUpperLimitNumber = 0;
 
       const GAS_BASE_URL = "https://script.google.com/macros/s/AKfycbx_xi_S3rK5X0jFiqfi_Hf8m3RdZbpiLG9W0T27TiW3avS1ArKuDBHznuDvSw7HbUvB/exec";
 
@@ -70,7 +74,11 @@
         // LIFFの初期化に失敗したら、処理を中断する（throwするか、ユーザーにエラーを表示）
         try {
             await liff.init({ liffId: config.LIFF_ID });
-            console.log('LIFF init succeeded.');
+            
+            if (!liff.isLoggedIn()) {
+                liff.login(); 
+                return; // ログイン画面へリダイレクトしたので、後続処理は中断
+            }
             
             // 成功した場合のみ、モード取得とユーザー情報取得へ進む
             mode = getMode() || "default"; // getMode() が undefined の場合、'default'
@@ -105,40 +113,66 @@
       // ------------------------------
       // ユーザー情報取得
       // ------------------------------
-      async function initUser(config) {
-        
-        try {
-          const profile = await liff.getProfile();
-          userId = profile.userId;
-          displayName = profile.displayName;
-        } catch (e) {
-          console.error("LIFF profile error:", e);
-        }
+      async function initUser(config) {        
+        const accessToken = liff.getAccessToken();
 
         // ユーザー情報を GAS から取得（なければ、usersシートに登録）
-        const userInfo = await fetchUserInfo(userId);
+        const userInfo = await fetchUserInfo(accessToken);
         
         document.getElementById("loading").classList.add("hidden");
-        if (!userInfo.exists) {
+
+        if (userInfo.exists && userInfo.data) {
+
+          const {
+              userId: fetchedUserId,
+              displayName: fetchedDisplayName,
+              className, 
+              upperLimitNumber 
+          } = userInfo.data;
+
+          // グローバル変数に代入
+          userId = fetchedUserId;
+          displayName = fetchedDisplayName;
+          userClassName = className; 
+          userUpperLimitNumber = upperLimitNumber;
+
+          // 登録済み → 通常画面のまま
+          document.getElementById("user-select").classList.add("hidden");
+          switchPage(mode, false);
+          
+        } else if (userInfo.data) {
+          const {
+              userId: fetchedUserId,
+              displayName: fetchedDisplayName
+          } = userInfo.data;
+          
+          // グローバル変数に代入
+          userId = fetchedUserId;
+          displayName = fetchedDisplayName;
+          userClassName = "";
+          userUpperLimitNumber = 0;
+
           // ユーザー未登録 → クラス選択画面を表示
           document.getElementById("user-select").classList.remove("hidden");
           setupClassSelect(config);
         } else {
-          // 登録済み → 通常画面のまま
-          document.getElementById("user-select").classList.add("hidden");
-          switchPage(mode, false);
+          // GAS側でエラーが発生し、userInfo.data がない場合
+          console.error("ユーザー情報の取得に失敗しました。", userInfo.message);
+          document.getElementById("errordisp").textContent = "ユーザー情報取得エラー: " + userInfo.message;
+          // エラー時は何もしないか、適切なフォールバック処理を記述
         }
       }
 
       // -----------------------------
       // ユーザ情報取得（高速）
       // -----------------------------
-      async function fetchUserInfo(userId) {
+      async function fetchUserInfo(accessToken) {
         const payload = { 
-          mode: "userinfo", 
-          userId: userId 
+          mode: "verifyAndGetUserInfo", 
+          accessToken: accessToken 
         };
         const formBody = new URLSearchParams(payload);
+        
         const res = await fetch(GAS_BASE_URL, {
           method: "POST", 
           headers: { "Content-Type": "application/x-www-form-urlencoded" }, 
@@ -200,15 +234,15 @@
         // ▼ 送信ボタン押下 → GAS に登録
         submitBtn.addEventListener("click", () => {
           const selectedClassIndex = classSelect.value;
-          const selectedUpperLimitCount = countSelect.value;
-          registerUserClass(selectedClassIndex, selectedUpperLimitCount, config);
+          const selectedUpperLimitNumber = countSelect.value;
+          registerUserClass(selectedClassIndex, selectedUpperLimitNumber, config);
         });
       }
 
       // -----------------------------
       // ユーザ情報の登録(GAS → スプレッドシート)
       // -----------------------------
-      async function registerUserClass(classIndex, upperLimitCount, config) {
+      async function registerUserClass(classIndex, upperLimitNumber, config) {
         const className = config.CLASS_INFO.CLASS_NAME[classIndex];
 
         // 送信データをオブジェクトでまとめる
@@ -217,7 +251,7 @@
           userId: userId,
           displayName: displayName,
           className: className,
-          upperLimitCount: upperLimitCount
+          upperLimitNumber: upperLimitNumber
         };
         
         const formBody = new URLSearchParams(payload);
@@ -234,7 +268,7 @@
           let messageText = "";
           if (json.success) {
             messageText = "クラスの登録が完了しました！";
-            sendResigterResultMessage(className, upperLimitCount, messageText);
+            sendResigterResultMessage(className, upperLimitNumber, messageText);
             switchPage(mode, true);
           } else {
             messageText = "クラスの登録に失敗しました！";
@@ -249,9 +283,9 @@
       /**
        * 登録時のメッセージをユーザーのトーク画面に送信する
        * @param {string} className - 登録されたクラス名
-       * @param {number} limitCount - 設定された上限回数
+       * @param {number} limitNumber - 設定された上限回数
        */
-      function sendResigterResultMessage(className, limitCount, messageText) {
+      function sendResigterResultMessage(className, limitNumber, messageText) {
           // 1. LIFFが初期化されているか、かつLINEアプリ内で動作しているかを確認
           if (!liff.isInClient()) {
               alert("LINEアプリ内でのみ実行可能です。");
@@ -261,14 +295,15 @@
           liff.sendMessages([{ type: 'text', text: messageText }])
               .then(() => {
                   console.log('Message sent successfully!');
-                  // オプション: 送信後、LIFFウィンドウを閉じる
-                  liff.closeWindow();
               })
               .catch((err) => {
                   console.error('Error sending message:', err);
               });
       }
 
+      // ------------------------------
+      // URLに付与したパラメータ(例：#mode=reservation)を取得
+      // ------------------------------
       function getMode() {
         if (window.location.hash) {
           const hashParams = new URLSearchParams(window.location.hash.substring(1)); // #を削除
