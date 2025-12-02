@@ -118,6 +118,7 @@
 
         // ユーザー情報を GAS から取得（なければ、usersシートに登録）
         const userInfo = await fetchUserInfo(accessToken);
+        console.log("GASからの返却値" + userInfo);
         
         document.getElementById("loading").classList.add("hidden");
 
@@ -253,6 +254,7 @@
           className: className,
           upperLimitNumber: upperLimitNumber
         };
+        console.log("registerUserInfo payload" + payload);
         
         const formBody = new URLSearchParams(payload);
         try {
