@@ -17,6 +17,9 @@ let currentCalendarDate = new Date(); // カレンダーの表示月を管理
 const TODAY_STRING = new Date().toISOString().split('T')[0];
 const MAX_RESERVABLE_MONTHS = 2; // (今月、来月)
 
+const TODAY = new Date();
+const TODAY_DATE_ONLY = new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate());
+
 // DOM要素
 const calendarGrid = document.getElementById('calendar-grid');
 const currentMonthSpan = document.getElementById('current-month');
@@ -352,7 +355,9 @@ function renderCalendar(date) {
         
         const isPastDay = new Date(dateString) < new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
-        const isReserved = RESERVATION_DATA.some(res => new Date(res.date).toISOString().startsWith(dateString));
+        const isReserved = RESERVATION_DATA.some(res =>
+            res.status !== 'キャンセル済み' &&
+            new Date(res.date).toISOString().startsWith(dateString));
         const isToday = dateString === TODAY_STRING;
         
         let classList = '';
@@ -390,20 +395,49 @@ function renderCalendar(date) {
 function renderReservationList() {
     reservationList.innerHTML = ''; 
 
-    const futureReservations = RESERVATION_DATA
-        .filter(res => new Date(res.date) >= new Date())
-        // ステータスが「キャンセル済み」ではないものに絞り込む
-        .filter(res => res.status !== 'キャンセル済み')
+    // 現在カレンダーに表示されている月 (年と月のみ)
+    const currentYear = currentCalendarDate.getFullYear();
+    const currentMonth = currentCalendarDate.getMonth();
+
+    const futureActiveReservations = RESERVATION_DATA
+        .map(res => {
+            // 受講済みステータスとグレーアウトフラグを付与する（前回の修正ロジック）
+            const resDate = new Date(res.date);
+            const resDateOnly = new Date(resDate.getFullYear(), resDate.getMonth(), resDate.getDate());
+
+            const processedRes = { 
+                ...res, 
+                displayStatus: res.status, 
+                isInactive: false
+            };
+
+            // 過去の予約を「受講済み」にする
+            if (resDateOnly < TODAY_DATE_ONLY && res.status !== 'キャンセル済み') {
+                processedRes.displayStatus = '受講済み';
+                processedRes.isInactive = true;
+            } 
+            if (res.status === 'キャンセル済み') {
+                processedRes.isInactive = true;
+            }
+            return processedRes;
+        })
+        // ★ 絞り込み 1: 表示されているカレンダーの月に属する予約のみに絞り込む
+        .filter(res => {
+            const resDate = new Date(res.date);
+            return resDate.getFullYear() === currentYear && resDate.getMonth() === currentMonth;
+        })
+        // ★ 絞り込み 2: キャンセル済みのものはリストに表示しない (displayStatusではなく元のstatusで判断)
+        .filter(res => res.status !== 'キャンセル済み') 
         .sort((a, b) => new Date(a.date) - new Date(b.date));
 
-    if (futureReservations.length === 0) {
+    if (futureActiveReservations.length === 0) {
         emptyListMessage.classList.remove('hidden');
         return;
     } 
     
     emptyListMessage.classList.add('hidden');
     
-    futureReservations.forEach(res => {
+    futureActiveReservations.forEach(res => {
         reservationList.appendChild(createReservationItem(res));
     });
 }
@@ -412,35 +446,41 @@ function renderReservationList() {
 // 予約アイテムのHTML生成
 // ------------------------------
 function createReservationItem(reservation) {
-    const { id, date, duration, className, cancellableUntil, status } = reservation;
+    const { id, date, duration, className, cancellableUntil, isInactive, displayStatus } = reservation;
     
     const lessonStart = new Date(date);
     const lessonEnd = new Date(lessonStart.getTime() + duration * 60000); 
     
     const now = new Date();
     const limit = new Date(cancellableUntil);
-    const isCancellable = now < limit && status === '確定';
+    const isCancellable = !isInactive && now < limit && reservation.status === '確定';
     
     const formattedTime = `${lessonStart.toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric', weekday: 'short' })} ${lessonStart.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })}〜${lessonEnd.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })}`;
     const formattedLimit = limit.toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' }) + limit.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
 
     const item = document.createElement('div');
     item.className = 'reservation-item';
-    if (status === 'キャンセル済み') item.classList.add('cancelled-item');
+    if (isInactive) item.classList.add('reservation-item--inactive');
     
+// キャンセル期限の表示テキストを調整
+    let cancelAreaContent = '';
+    if (isCancellable) {
+        cancelAreaContent = `
+            <button class="cancel-button" data-id="${id}">[キャンセル]</button>
+            <span class="cancel-limit">${formattedLimit}まで</span>
+        `;
+    } else {
+        // ★ 変更: displayStatusを使用
+        cancelAreaContent = `<span class="cancel-limit">${displayStatus}</span>`;
+    }
+
     item.innerHTML = `
         <div class="item-details">
             <div class="date-time">${formattedTime}</div>
             <div class="lesson-name">${className}</div>
         </div>
         <div class="cancel-area">
-            ${isCancellable ? `
-                <button class="cancel-button" data-id="${id}">[キャンセル]</button>
-                <span class="cancel-limit">${formattedLimit}まで</span>
-            ` : (status === 'キャンセル済み' ? 
-                '<span class="cancel-limit">キャンセル済み</span>' :
-                '<span class="cancel-limit">期限切れ</span>'
-            )}
+            ${cancelAreaContent}
         </div>
     `;
     

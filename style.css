@@ -52,7 +52,7 @@ h1 {
 /* 予約がある日と今日 */
 .reserved-day { 
     color: white; 
-    background-color: #5D4037; /* 墨色イメージ */ 
+    background-color: #4AC3FF; 
     border-radius: 50%; 
     width: 30px; 
     height: 30px; 
@@ -69,6 +69,34 @@ h1 {
     line-height: 26px; 
     margin: 0 auto; 
     display: block;
+}
+
+/* ★★★ 凡例のスタイル ★★★ */
+.legend-area {
+    display: flex;
+    justify-content: flex-start;
+    gap: 20px;
+    padding: 10px 0;
+    font-size: 0.9em;
+    border-bottom: 1px solid #eee;
+}
+.legend-item {
+    display: flex;
+    align-items: center;
+}
+.legend-color {
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+    border-radius: 3px;
+    margin-right: 5px;
+    border: 1px solid #ccc;
+}
+.today-color {
+    background-color: #00b900; /* カレンダーの .today と一致 */
+}
+.reserved-day-color {
+    background-color: #4AC3FF; /* カレンダーの .reserved-day と一致 */
 }
 
 /* ==================================== */
