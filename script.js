@@ -75,7 +75,14 @@ async function loadConfig() {
     if (cache) {
       return JSON.parse(cache);
     }
-    const res = await fetch(GAS_BASE_URL + "?mode=config");
+    const res = await fetch("/config.json");
+
+    // 取得失敗時のエラーハンドリング
+    if (!res.ok) {
+        console.error(`設定ファイルのロードに失敗しました: ${res.status} ${res.statusText}`);
+        throw new Error("設定ファイルが見つからないか、アクセスできません。");
+    }
+
     const json = await res.json();
     localStorage.setItem(cacheKey, JSON.stringify(json));
     return json;
@@ -339,16 +346,18 @@ function renderCalendar(date) {
     const month = date.getMonth(); 
     
     currentMonthSpan.textContent = `${year}年 ${month + 1}月`;
-    calendarGrid.innerHTML = ''; 
+    calendarGrid.innerHTML = '';
+
+    let calendarHtml = '';
 
     const daysOfWeek = ['日', '月', '火', '水', '木', '金', '土'];
-    daysOfWeek.forEach(day => { calendarGrid.innerHTML += `<div class="day-header">${day}</div>`; });
+    daysOfWeek.forEach(day => { calendarHtml += `<div class="day-header">${day}</div>`; });
 
     const firstDayOfMonth = new Date(year, month, 1);
     const lastDayOfMonth = new Date(year, month + 1, 0);
     const startDayOfWeek = firstDayOfMonth.getDay(); 
 
-    for (let i = 0; i < startDayOfWeek; i++) { calendarGrid.innerHTML += '<div></div>'; }
+    for (let i = 0; i < startDayOfWeek; i++) { calendarHtml += '<div></div>'; }
 
     for (let day = 1; day <= lastDayOfMonth.getDate(); day++) {
         const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
@@ -365,11 +374,14 @@ function renderCalendar(date) {
         if (isToday) classList += (isReserved ? ' ' : '') + 'today';
         if (isPastDay) classList += (classList ? ' ' : '') + 'past-day';
 
-        calendarGrid.innerHTML += `
+        calendarHtml += `
             <div class="date-cell">
                 <span class="${classList}" data-date="${dateString}">${day}</span>
             </div>`;
     }
+
+    // ループ終了後、DOMへの書き込みは一度だけ行う
+    calendarGrid.innerHTML = calendarHtml;
 
     const currentMonthOnly = new Date(year, month, 1);
     const nextMonthOnly = new Date(today.getFullYear(), today.getMonth() + 1, 1);
