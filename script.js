@@ -438,14 +438,14 @@ function renderReservationList() {
 
     const futureActiveReservations = RESERVATION_DATA
         .map(res => {
-            const datePart = res.dateTime.split(' ')[0];
-            datePart.replace(/\//g, '-');
+            const resDateTimeString = res.dateTime.replace(/\//g, '-');
+            const resDateTimeObj = new Date(resDateTimeString);
 
-            const resDate = new Date(datePart);
-            const resDateOnly = new Date(resDate.getFullYear(), resDate.getMonth(), resDate.getDate());
+            const resDateOnly = new Date(resDateTimeObj.getFullYear(), resDateTimeObj.getMonth(), resDateTimeObj.getDate());
 
             const processedRes = { 
                 ...res, 
+                dateObject: resDateTimeObj,
                 displayStatus: res.status, 
                 isInactive: false
             };
@@ -462,25 +462,20 @@ function renderReservationList() {
         })
         // 表示されているカレンダーの月に属する予約のみに絞り込む
         .filter(res => {
-            const datePart = res.dateTime.split(' ')[0];
-            datePart.replace(/\//g, '-');
-            const resDate = new Date(datePart);
-            return resDate.getFullYear() === currentYear && resDate.getMonth() === currentMonth;
+            return res.dateObject.getFullYear() === currentYear && res.dateObject.getMonth() === currentMonth;
         })
         // 月のフィルター日付が設定されていれば適用
         .filter(res => {
             if (selectedFilterDate) { 
                 // selectedFilterDate は YYYY-MM-DD 形式
-                const datePart = res.dateTime.split(' ')[0];
-                datePart.replace(/\//g, '-');
-                const resDateString = new Date(datePart).toISOString().split('T')[0];
+                const resDateString = new Date(res.dateObject).toISOString().split('T')[0];
                 return resDateString === selectedFilterDate;
             }
             return true; // フィルターがなければ全件表示
         })
         // キャンセル済みのものはリストに表示しない (displayStatusではなく元のstatusで判断)
         .filter(res => res.status !== 'キャンセル済み') 
-        .sort((a, b) => new Date(a.date) - new Date(b.date));
+        .sort((a, b) => new Date(a.dateObject.getTime()) - new Date(b.dateObject.getTime()));
 
     if (futureActiveReservations.length === 0) {
         emptyListMessage.classList.remove('hidden');
@@ -498,16 +493,32 @@ function renderReservationList() {
 // 予約アイテムのHTML生成
 // ------------------------------
 function createReservationItem(reservation) {
-    const { id, date, duration, className, cancellableUntil, isInactive, displayStatus } = reservation;
+    const { id, dateTime, duration, className, cancellableUntil, isInactive, displayStatus, dateObject } = reservation;
     
-    const lessonStart = new Date(date);
+    let lessonStart;
+
+    if (dateObject) {
+        // renderReservationListから呼ばれている場合はこれを使う
+        lessonStart = dateObject;
+    } else {
+        // 単体で呼ばれる場合のフォールバック
+        const resDateTimeString = dateTime.replace(/\//g, '-');
+        lessonStart = new Date(resDateTimeString);
+    }
+
     const lessonEnd = new Date(lessonStart.getTime() + duration * 60000); 
     
     const now = new Date();
-    const limit = new Date(cancellableUntil);
+    const limit = new Date(cancellableUntil.replace(/\//g, '-'));
+    
     const isCancellable = !isInactive && now < limit && reservation.status === '確定';
     
-    const formattedTime = `${lessonStart.toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric', weekday: 'short' })} ${lessonStart.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })}〜${lessonEnd.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })}`;
+// 表示用時刻のフォーマット
+    const formattedDate = lessonStart.toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric', weekday: 'short' });
+    const formattedStartTime = lessonStart.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+    const formattedEndTime = lessonEnd.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+    const formattedTime = `${formattedDate} ${formattedStartTime}〜${formattedEndTime}`;
+    
     const formattedLimit = limit.toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' }) + limit.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
 
     const item = document.createElement('div');
