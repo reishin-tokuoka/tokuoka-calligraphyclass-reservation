@@ -319,6 +319,8 @@ async function renderReservationListScreen() {
     renderCalendar(currentCalendarDate);
 
     await fetchReservations();
+
+    renderCalendar(currentCalendarDate);
     renderReservationList();
     
     // イベントリスナー設定（二重登録防止チェックあり）
