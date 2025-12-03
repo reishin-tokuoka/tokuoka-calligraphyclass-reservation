@@ -14,6 +14,8 @@ const GAS_BASE_URL = "https://script.google.com/macros/s/AKfycbxQPiNqa3uHpnkrCiw
 // 予約一覧画面用
 let RESERVATION_DATA = []; // 予約データを格納
 let currentCalendarDate = new Date(); // カレンダーの表示月を管理
+const TODAY = new Date();
+const TODAY_DATE_ONLY = new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate());
 const TODAY_STRING = [
     TODAY.getFullYear(),
     String(TODAY.getMonth() + 1).padStart(2, '0'),
@@ -21,8 +23,6 @@ const TODAY_STRING = [
 ].join('-');
 const MAX_RESERVABLE_MONTHS = 2; // (今月、来月)
 
-const TODAY = new Date();
-const TODAY_DATE_ONLY = new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate());
 
 // 現在選択されているフィルター日付 (YYYY-MM-DD 形式)
 let monthFilterMap = {};
