@@ -20,6 +20,9 @@ const MAX_RESERVABLE_MONTHS = 2; // (今月、来月)
 const TODAY = new Date();
 const TODAY_DATE_ONLY = new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate());
 
+// 現在選択されているフィルター日付 (YYYY-MM-DD 形式)
+let currentFilterDateString = null;
+
 // DOM要素
 const calendarGrid = document.getElementById('calendar-grid');
 const currentMonthSpan = document.getElementById('current-month');
@@ -364,7 +367,7 @@ function renderCalendar(date) {
     for (let day = 1; day <= lastDayOfMonth.getDate(); day++) {
         const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         
-        const isPastDay = new Date(dateString) < new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        const isPastDay = new Date(dateString) < TODAY_DATE_ONLY;
 
         const isReserved = RESERVATION_DATA.some(res =>
             res.status !== 'キャンセル済み' &&
@@ -384,6 +387,11 @@ function renderCalendar(date) {
 
     // ループ終了後、DOMへの書き込みは一度だけ行う
     calendarGrid.innerHTML = calendarHtml;
+
+    // リスナーを設定
+    setupCalendarDateListeners(); 
+    // 選択状態を視覚的に更新
+    updateCalendarSelection();
 
     const currentMonthOnly = new Date(year, month, 1);
     const nextMonthOnly = new Date(today.getFullYear(), today.getMonth() + 1, 1);
@@ -415,7 +423,7 @@ function renderReservationList() {
 
     const futureActiveReservations = RESERVATION_DATA
         .map(res => {
-            // 受講済みステータスとグレーアウトフラグを付与する（前回の修正ロジック）
+            // 受講済みステータスとグレーアウトフラグを付与する
             const resDate = new Date(res.date);
             const resDateOnly = new Date(resDate.getFullYear(), resDate.getMonth(), resDate.getDate());
 
@@ -435,12 +443,21 @@ function renderReservationList() {
             }
             return processedRes;
         })
-        // ★ 絞り込み 1: 表示されているカレンダーの月に属する予約のみに絞り込む
+        // 表示されているカレンダーの月に属する予約のみに絞り込む
         .filter(res => {
             const resDate = new Date(res.date);
             return resDate.getFullYear() === currentYear && resDate.getMonth() === currentMonth;
         })
-        // ★ 絞り込み 2: キャンセル済みのものはリストに表示しない (displayStatusではなく元のstatusで判断)
+        // 表示されているカレンダーの月に属する予約のみに絞り込む
+        .filter(res => {
+            // 日付フィルターが設定されていれば適用
+            if (currentFilterDateString) {
+                const resDateString = new Date(res.date).toISOString().split('T')[0];
+                return resDateString === currentFilterDateString;
+            }
+            return true; // フィルターがなければ全件表示
+        })
+        // キャンセル済みのものはリストに表示しない (displayStatusではなく元のstatusで判断)
         .filter(res => res.status !== 'キャンセル済み') 
         .sort((a, b) => new Date(a.date) - new Date(b.date));
 
@@ -564,10 +581,14 @@ function setupModalListeners() {
     // 承認ボタンの処理
     modalConfirmBtn.addEventListener('click', async () => {
         if (currentConfirmCallback) {
+            modalConfirmBtn.disabled = true;
+
             try {
                 await currentConfirmCallback();
             } catch (error) {
                 console.error("Confirm callback failed:", error);
+            } finally {
+                modalConfirmBtn.disabled = false;
             }
         }
         hideCustomModal();
@@ -593,4 +614,64 @@ function isMonthInAllowedRange(date) {
 
     // 今月以降、かつ予約可能な最終月以前であるか
     return currentMonth >= startMonth && currentMonth <= endMonth;
+}
+
+// ====================================
+// カレンダーの日付絞り込みロジック
+// ====================================
+
+/**
+ * カレンダーの日付セルにイベントリスナーを設定する
+ */
+function setupCalendarDateListeners() {
+    // リスナーの二重登録を防ぐため、既存のリスナーを一度削除（簡略化のため、DOMを再生成することで対応）
+
+    const dayCells = calendarGrid.querySelectorAll('.date-cell > span'); 
+
+    dayCells.forEach(cell => {
+        // past-dayのセルはクリック対象外
+        if (cell.classList.contains('past-day')) return;
+
+        cell.addEventListener('click', (event) => {
+            const dateString = event.currentTarget.getAttribute('data-date'); // YYYY-MM-DD 形式
+            if (dateString) {
+                filterReservationsByDate(dateString);
+            }
+        });
+    });
+}
+
+/**
+ * 予約リストをフィルタリングし、再描画する
+ * @param {string} dateString - クリックされた日付 'YYYY-MM-DD'
+ */
+function filterReservationsByDate(dateString) {
+    // フィルターの切り替え処理
+    if (currentFilterDateString === dateString) {
+        // 同じ日付がクリックされた場合（フィルター解除）
+        currentFilterDateString = null;
+    } else {
+        // 異なる日付がクリックされた場合（新しいフィルター設定）
+        currentFilterDateString = dateString;
+    }
+
+    // リストの再描画（この中で currentFilterDateString を参照して絞り込まれる）
+    renderReservationList();
+    
+    // 選択状態をカレンダーに反映
+    updateCalendarSelection();
+}
+
+/**
+ * カレンダーの選択状態を視覚的に更新する（強調表示）
+ */
+function updateCalendarSelection() {
+    document.querySelectorAll('.day-cell > span').forEach(cell => {
+        const cellDate = cell.getAttribute('data-date');
+        if (cellDate === currentFilterDateString) {
+            cell.classList.add('selected-day'); 
+        } else {
+            cell.classList.remove('selected-day'); 
+        }
+    });
 }
