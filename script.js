@@ -14,7 +14,11 @@ const GAS_BASE_URL = "https://script.google.com/macros/s/AKfycbxQPiNqa3uHpnkrCiw
 // 予約一覧画面用
 let RESERVATION_DATA = []; // 予約データを格納
 let currentCalendarDate = new Date(); // カレンダーの表示月を管理
-const TODAY_STRING = new Date().toISOString().split('T')[0];
+const TODAY_STRING = [
+    TODAY.getFullYear(),
+    String(TODAY.getMonth() + 1).padStart(2, '0'),
+    String(TODAY.getDate()).padStart(2, '0')
+].join('-');
 const MAX_RESERVABLE_MONTHS = 2; // (今月、来月)
 
 const TODAY = new Date();
@@ -518,8 +522,8 @@ function createReservationItem(reservation) {
     const formattedStartTime = lessonStart.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
     const formattedEndTime = lessonEnd.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
     const formattedTime = `${formattedDate} ${formattedStartTime}〜${formattedEndTime}`;
-    
-    const formattedLimit = limit.toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' }) + limit.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+
+    const formattedLimit = limit.toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' }) + ' ' + limit.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
 
     const item = document.createElement('div');
     item.className = 'reservation-item';
