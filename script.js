@@ -21,7 +21,8 @@ const TODAY = new Date();
 const TODAY_DATE_ONLY = new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate());
 
 // 現在選択されているフィルター日付 (YYYY-MM-DD 形式)
-let currentFilterDateString = null;
+let monthFilterMap = {};
+
 
 // DOM要素
 const calendarGrid = document.getElementById('calendar-grid');
@@ -421,6 +422,10 @@ function renderReservationList() {
     const currentYear = currentCalendarDate.getFullYear();
     const currentMonth = currentCalendarDate.getMonth();
 
+    // ★ 修正: 月フィルターマップから現在の月のフィルター日付を取得
+    const currentMonthKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
+    const selectedFilterDate = monthFilterMap[currentMonthKey];
+
     const futureActiveReservations = RESERVATION_DATA
         .map(res => {
             // 受講済みステータスとグレーアウトフラグを付与する
@@ -448,12 +453,12 @@ function renderReservationList() {
             const resDate = new Date(res.date);
             return resDate.getFullYear() === currentYear && resDate.getMonth() === currentMonth;
         })
-        // 表示されているカレンダーの月に属する予約のみに絞り込む
+        // 月のフィルター日付が設定されていれば適用
         .filter(res => {
-            // 日付フィルターが設定されていれば適用
-            if (currentFilterDateString) {
+            if (selectedFilterDate) { 
+                // selectedFilterDate は YYYY-MM-DD 形式
                 const resDateString = new Date(res.date).toISOString().split('T')[0];
-                return resDateString === currentFilterDateString;
+                return resDateString === selectedFilterDate;
             }
             return true; // フィルターがなければ全件表示
         })
@@ -646,18 +651,23 @@ function setupCalendarDateListeners() {
  * @param {string} dateString - クリックされた日付 'YYYY-MM-DD'
  */
 function filterReservationsByDate(dateString) {
+    // 現在表示されているカレンダーの月を 'YYYY-MM' 形式で取得
+    const currentMonthKey = `${currentCalendarDate.getFullYear()}-${String(currentCalendarDate.getMonth() + 1).padStart(2, '0')}`;
+
+    // 現在この月に設定されているフィルター日付
+    const currentFilter = monthFilterMap[currentMonthKey];
+
     // フィルターの切り替え処理
-    if (currentFilterDateString === dateString) {
+    if (currentFilter === dateString) {
         // 同じ日付がクリックされた場合（フィルター解除）
-        currentFilterDateString = null;
+        delete monthFilterMap[currentMonthKey];
     } else {
         // 異なる日付がクリックされた場合（新しいフィルター設定）
-        currentFilterDateString = dateString;
+        monthFilterMap[currentMonthKey] = dateString;
     }
 
-    // リストの再描画（この中で currentFilterDateString を参照して絞り込まれる）
+    // リストの再描画
     renderReservationList();
-    
     // 選択状態をカレンダーに反映
     updateCalendarSelection();
 }
@@ -666,9 +676,14 @@ function filterReservationsByDate(dateString) {
  * カレンダーの選択状態を視覚的に更新する（強調表示）
  */
 function updateCalendarSelection() {
+    // 現在表示されているカレンダーの月を 'YYYY-MM' 形式で取得
+    const currentMonthKey = `${currentCalendarDate.getFullYear()}-${String(currentCalendarDate.getMonth() + 1).padStart(2, '0')}`;
+    const selectedFilterDate = monthFilterMap[currentMonthKey];
+
     document.querySelectorAll('.day-cell > span').forEach(cell => {
         const cellDate = cell.getAttribute('data-date');
-        if (cellDate === currentFilterDateString) {
+
+        if (cellDate === selectedFilterDate) {
             cell.classList.add('selected-day'); 
         } else {
             cell.classList.remove('selected-day'); 
