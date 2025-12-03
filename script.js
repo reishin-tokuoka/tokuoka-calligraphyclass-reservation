@@ -311,14 +311,14 @@ async function fetchReservations() {
 // 予約一覧画面の描画メイン関数
 // ------------------------------
 async function renderReservationListScreen() {
-    await fetchReservations();
-
     // 月が予約可能範囲外でないかチェックし、範囲外であれば今月へリセット
     if (!isMonthInAllowedRange(currentCalendarDate)) {
         currentCalendarDate = new Date();
     }
-
+    // 予約データを待たずに、カレンダー（UI）を先に描画する
     renderCalendar(currentCalendarDate);
+
+    await fetchReservations();
     renderReservationList();
     
     // イベントリスナー設定（二重登録防止チェックあり）
@@ -561,7 +561,6 @@ const hideCustomModal = () => {
 function setupModalListeners() {
     // 承認ボタンの処理
     modalConfirmBtn.addEventListener('click', async () => {
-        customModal.classList.add('hidden');
         if (currentConfirmCallback) {
             try {
                 await currentConfirmCallback();
@@ -569,12 +568,12 @@ function setupModalListeners() {
                 console.error("Confirm callback failed:", error);
             }
         }
-        currentConfirmCallback = null;
+        hideCustomModal();
     });
 
     // キャンセルボタンの処理
     modalCancelBtn.addEventListener('click', () => {
-        hideCustomModal(true);
+        hideCustomModal();
     });
 }
 
