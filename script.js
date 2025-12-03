@@ -365,14 +365,24 @@ function renderCalendar(date) {
 
     for (let i = 0; i < startDayOfWeek; i++) { calendarHtml += '<div></div>'; }
 
+    // 予約リストを準備 (月の判定を効率化)
+    // 予約データの日付を 'yyyy-MM-dd' 形式でセットに格納
+    const reservedDates = new Set(RESERVATION_DATA
+        .filter(res => res.status === '確定') // GASの関数は'確定'のみ返すので、一応確認
+        .map(res => {
+            // GASから返された 'dateTime' は 'yyyy/MM/dd HH:mm' 形式を想定
+            // 日付部分 (yyyy/MM/dd) のみを取得
+            const datePart = res.dateTime.split(' ')[0];
+            // YYYY/MM/DD形式をYYYY-MM-DD形式に変換してSetに格納
+            return datePart.replace(/\//g, '-');
+        })
+    );
+
     for (let day = 1; day <= lastDayOfMonth.getDate(); day++) {
         const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         
         const isPastDay = new Date(dateString) < TODAY_DATE_ONLY;
-
-        const isReserved = RESERVATION_DATA.some(res =>
-            res.status !== 'キャンセル済み' &&
-            new Date(res.date).toISOString().startsWith(dateString));
+        const isReserved = reservedDates.has(dateString);
         const isToday = dateString === TODAY_STRING;
         
         let classList = '';
