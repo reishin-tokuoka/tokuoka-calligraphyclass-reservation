@@ -9,7 +9,7 @@ let userId = "INIT_USER_ID";
 let displayName = "INIT_USER_NAME";
 let userClassName = "";
 let userUpperLimitNumber = 0;
-const GAS_BASE_URL = "https://script.google.com/macros/s/AKfycbzyr19cHSDB7YJZhrmBFrGq-oRYK-A-NyXms_FLD1PnK8WMy53Jz03bwAQ9WIhFszYt/exec";
+const GAS_BASE_URL = "https://script.google.com/macros/s/AKfycbxQPiNqa3uHpnkrCiwlLL1CvHxZojD9PNqaUjV_-viiGDvZzelNEB_D-sQ3oAsixS78/exec";
 
 // 予約一覧画面用
 let RESERVATION_DATA = []; // 予約データを格納
