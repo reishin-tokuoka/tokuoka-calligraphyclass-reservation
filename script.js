@@ -436,10 +436,15 @@ function renderReservationList() {
     const currentMonthKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
     const selectedFilterDate = monthFilterMap[currentMonthKey];
 
+    const datePart = res.dateTime.split(' ')[0];
+    // YYYY/MM/DD形式をYYYY-MM-DD形式に変換してSetに格納
+    datePart.replace(/\//g, '-');
+
     const futureActiveReservations = RESERVATION_DATA
         .map(res => {
             // 受講済みステータスとグレーアウトフラグを付与する
-            const resDate = new Date(res.date);
+
+            const resDate = new Date(datePart);
             const resDateOnly = new Date(resDate.getFullYear(), resDate.getMonth(), resDate.getDate());
 
             const processedRes = { 
@@ -460,14 +465,14 @@ function renderReservationList() {
         })
         // 表示されているカレンダーの月に属する予約のみに絞り込む
         .filter(res => {
-            const resDate = new Date(res.date);
+            const resDate = new Date(datePart);
             return resDate.getFullYear() === currentYear && resDate.getMonth() === currentMonth;
         })
         // 月のフィルター日付が設定されていれば適用
         .filter(res => {
             if (selectedFilterDate) { 
                 // selectedFilterDate は YYYY-MM-DD 形式
-                const resDateString = new Date(res.date).toISOString().split('T')[0];
+                const resDateString = new Date(datePart).toISOString().split('T')[0];
                 return resDateString === selectedFilterDate;
             }
             return true; // フィルターがなければ全件表示
