@@ -855,13 +855,12 @@ function renderReservationCalendar(date, status, capacityData = {}) {
         let capacityInfo = ''; 
         let isReservable = false;
         let isMyReserved = false; // 予約済みフラグを追加
+        // capacityData は { 'YYYY-MM-DD': [{ ... }] } の形式
+        const dayCapacity = capacityData[dateString] || [];
         
         if (currentDateOnly < today) {
             dayClass += ' inactive';
         } else {
-            // capacityData は { 'YYYY-MM-DD': [{ ... }] } の形式
-            const dayCapacity = capacityData[dateString] || [];
-            
             // --- 授業なしの判定 ---
             if (dayCapacity.length === 0) {
                 // 授業なし：提案色（薄い灰色）の inactive を使用
