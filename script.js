@@ -866,7 +866,6 @@ function renderReservationCalendar(date, status, capacityData = {}) {
                 const totalRemaining = dayCapacity.reduce((sum, item) => sum + item.remainingCapacity, 0);
                 if (totalRemaining > 0) {
                     isReservable = true;
-                    capacityInfo = `残り ${totalRemaining}`; // 日付の下に総残席数を表示
                 }
             }
 
@@ -874,7 +873,6 @@ function renderReservationCalendar(date, status, capacityData = {}) {
                 dayClass += ' reservable clickable';
             } else {
                 dayClass += ' fully-booked';
-                capacityInfo = '満席';
             }
         }
         
@@ -963,7 +961,9 @@ function confirmReservation(buttonElement) {
     showCustomModal(
         '予約の確定',
         message,
-        () => handleReservation(lessonId, dateString, time, classNameText)
+        async () => {
+            await handleReservation(lessonId, dateString, time, classNameText);
+        }
     );
 }
 
