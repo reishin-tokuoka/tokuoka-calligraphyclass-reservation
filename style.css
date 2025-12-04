@@ -15,7 +15,7 @@ h1 {
 }
 
 /* ==================================== */
-/* 2. カレンダーエリア */
+/* 2. 一覧画面のカレンダーエリア */
 /* ==================================== */
 .calendar-area { 
     background-color: white; 
@@ -228,4 +228,198 @@ h1 {
 .modal-button.modal-confirm { 
     background-color: #00b900; 
     color: white; 
+}
+
+/* ==================================== */
+/* 予約画面 (reservationArea) の基本設定 */
+/* ==================================== */
+#reservationArea {
+    padding: 15px;
+    background-color: #f8f9fa; /* やや明るい背景色 */
+    border-radius: 8px;
+    max-width: 600px; /* PC/タブレットでの表示幅を制限 */
+    margin: 0 auto;
+}
+
+#reservationArea.hidden {
+    display: none;
+}
+
+#reservationArea h2 {
+    color: #007bff; /* メインカラー */
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 5px;
+    margin-bottom: 20px;
+}
+
+/* ==================================== */
+/* カレンダーヘッダー (月移動部分) */
+/* ==================================== */
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding: 5px 0;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-weight: bold;
+    font-size: 18px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+#current-month-res {
+    flex-grow: 1;
+    text-align: center;
+    color: #333;
+}
+
+.calendar-header button {
+    background-color: transparent;
+    border: none;
+    color: #007bff;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0 15px;
+    transition: color 0.2s;
+}
+
+.calendar-header button:hover {
+    color: #0056b3;
+}
+
+/* ==================================== */
+/* カレンダー本体 (日付部分) */
+/* ==================================== */
+.calendar {
+    width: 100%;
+    /* 7列のグリッドレイアウト */
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+    background-color: #ccc; /* グリッドの線として機能 */
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    overflow: hidden; /* 角丸を適用 */
+}
+
+/* 曜日ヘッダー */
+.calendar-day-header {
+    background-color: #e9ecef;
+    text-align: center;
+    padding: 8px 0;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+/* 日曜日 (赤字) */
+.calendar-day-header:nth-child(1) {
+    color: #dc3545; /* 赤 */
+}
+
+/* 土曜日 (青字) */
+.calendar-day-header:nth-child(7) {
+    color: #007bff; /* 青 */
+}
+
+/* 個々の日付セル */
+.calendar-cell {
+    background-color: #fff;
+    height: 60px; /* セルの高さを確保 */
+    padding: 5px;
+    text-align: right;
+    font-size: 16px;
+    cursor: default;
+    position: relative;
+    transition: background-color 0.2s;
+    user-select: none;
+}
+
+/* 非アクティブな日 (先月/来月の日付) */
+.calendar-cell.inactive {
+    color: #aaa;
+    background-color: #f4f4f4;
+    cursor: default;
+}
+
+/* 予約可能な日 (クリック可能な日) */
+.calendar-cell.available {
+    cursor: pointer;
+    border-bottom: 3px solid #28a745; /* 緑の線で予約可能を示す */
+}
+
+.calendar-cell.available:hover {
+    background-color: #e2f0e7; /* ホバーで薄い緑 */
+}
+
+/* 選択中の日 */
+.calendar-cell.selected {
+    background-color: #ffc107; /* 黄色で選択中を示す */
+    font-weight: bold;
+}
+
+/* 予約枠を示すインジケーター */
+.capacity-indicator {
+    position: absolute;
+    bottom: 3px;
+    left: 3px;
+    font-size: 10px;
+    font-weight: bold;
+    color: #28a745; /* 緑色 */
+}
+
+/* 満席の日 */
+.calendar-cell.full {
+    border-bottom: 3px solid #dc3545; /* 赤の線で満席を示す */
+    color: #dc3545;
+}
+
+/* ==================================== */
+/* 選択詳細エリア (selectionDetails) */
+/* ==================================== */
+.selection-details {
+    margin-top: 25px;
+    padding: 15px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+#selectedDateText {
+    color: #333;
+    margin-bottom: 10px;
+    font-size: 1.1em;
+}
+
+#availableClassesList {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* 予約枠ボタン */
+.class-slot-btn {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    background-color: #17a2b8; /* インフォメーションブルー */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    text-align: left;
+    transition: background-color 0.2s, opacity 0.2s;
+}
+
+.class-slot-btn:hover:not(:disabled) {
+    background-color: #138496;
+}
+
+.class-slot-btn:disabled {
+    background-color: #6c757d; /* グレーアウト */
+    cursor: not-allowed;
+    opacity: 0.6;
 }

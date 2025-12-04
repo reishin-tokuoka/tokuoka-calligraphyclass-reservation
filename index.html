@@ -33,16 +33,14 @@
       </div>
 
       <div id="reservationArea" class="screen hidden">
-          <h2>🖋️ 新規予約</h2>
+          <h2 id="reservationAreaTitle">授業予約</h2>
 
           <div class="calendar-header">
-              <button id="prev-month-btn-res">←</button>
-              <span id="current-month-res">2025年 12月</span>
-              <button id="next-month-btn-res">→</button>
+              <button id="prev-month-btn-res">&lt;</button>
+              <span id="current-month-res"></span>
+              <button id="next-month-btn-res">&gt;</button>
           </div>
-
-          <div id="calendar-container-res" class="calendar">
-          </div>
+          <div id="calendar-container-res" class="calendar"></div>
 
           <div id="selectionDetails" class="selection-details hidden">
               <h3 id="selectedDateText"></h3>
