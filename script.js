@@ -51,8 +51,6 @@ async function main() {
             liff.login(); 
             return;
         }
-        
-        mode = getMode() || "default";
         await initUser(config);
 
         setupModalListeners();
