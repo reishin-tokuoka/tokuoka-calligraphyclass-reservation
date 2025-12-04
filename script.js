@@ -4,12 +4,16 @@
 
 // 既存のグローバル変数
 let mode = "default";
-const APP_VERSION = "VERSION_002"; // キャッシュ無効化用
+const APP_VERSION = "VERSION_003"; // キャッシュ無効化用
 let userId = "INIT_USER_ID";
 let displayName = "INIT_USER_NAME";
 let userClassName = "";
 let userUpperLimitNumber = 0;
 const GAS_BASE_URL = "https://script.google.com/macros/s/AKfycbxQPiNqa3uHpnkrCiwlLL1CvHxZojD9PNqaUjV_-viiGDvZzelNEB_D-sQ3oAsixS78/exec";
+
+// 予約画面用
+let AVAILABLE_CAPACITY_DATA = {}; // { 'YYYY-MM-DD': [{ startTime: 'HH:mm', className: '...', remainingCapacity: N }, ...] }
+const CURRENT_SCREEN_DATE = new Date(); // 予約画面のカレンダー表示月 (currentCalendarDateとは別に、予約画面用として使用)
 
 // 予約一覧画面用
 let RESERVATION_DATA = []; // 予約データを格納
@@ -29,12 +33,25 @@ let monthFilterMap = {};
 
 
 // DOM要素
+const reservationArea = document.getElementById("reservationArea"); // ⭐ 追加
+const listArea = document.getElementById("listArea"); // ⭐ 追加
 const calendarGrid = document.getElementById('calendar-grid');
 const currentMonthSpan = document.getElementById('current-month');
 const reservationList = document.getElementById('reservation-list');
 const emptyListMessage = document.getElementById('empty-list-message');
-const prevMonthBtn = document.getElementById('prev-month-btn');
-const nextMonthBtn = document.getElementById('next-month-btn');
+const prevMonthBtnList = document.getElementById('prev-month-btn');
+const nextMonthBtnList = document.getElementById('next-month-btn');
+
+// 予約画面用に追加定義するDOM要素 (IDは仮定)
+const calendarContainerRes = document.getElementById('calendar-container-res'); // 予約画面のカレンダーグリッド本体
+const currentMonthSpanRes = document.getElementById('current-month-res');       // 予約画面の月表示
+const prevMonthBtnRes = document.getElementById('prev-month-btn-res');         // 予約画面の前月ボタン
+const nextMonthBtnRes = document.getElementById('next-month-btn-res');         // 予約画面の次月ボタン
+
+// 予約画面固有の要素
+const selectionDetails = document.getElementById('selectionDetails'); 
+const selectedDateText = document.getElementById('selectedDateText');
+const availableClassesList = document.getElementById('availableClassesList');
 
 // カスタムモーダル要素
 const customModal = document.getElementById('custom-modal');
@@ -264,8 +281,8 @@ function getMode() {
 // 画面切り替え
 // ------------------------------
 async function switchPage(mode, registerFlag) {
-  const reservation = document.getElementById("reservationArea");
-  const list = document.getElementById("listArea");
+  const reservation = reservationArea;
+  const list = listArea
   const userSelect = document.getElementById("user-select");
 
   if (registerFlag) {
@@ -280,6 +297,8 @@ async function switchPage(mode, registerFlag) {
   } else {
       list.classList.add("hidden");
       reservation.classList.remove("hidden");
+      // ★ 予約画面の描画を開始
+      setupReservationScreen();
   }
 }
 
@@ -332,18 +351,18 @@ async function renderReservationListScreen() {
     renderReservationList();
     
     // イベントリスナー設定（二重登録防止チェックあり）
-    if (!prevMonthBtn.hasAttribute('data-listener')) {
-        prevMonthBtn.addEventListener('click', () => {
+    if (!prevMonthBtnList.hasAttribute('data-listener')) {
+        prevMonthBtnList.addEventListener('click', () => {
             currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
             renderCalendar(currentCalendarDate);
             renderReservationList();
         });
-        nextMonthBtn.addEventListener('click', () => {
+        nextMonthBtnList.addEventListener('click', () => {
             currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
             renderCalendar(currentCalendarDate);
             renderReservationList();
         });
-        prevMonthBtn.setAttribute('data-listener', 'true');
+        prevMonthBtnList.setAttribute('data-listener', 'true');
     }
 }
 
@@ -413,16 +432,16 @@ function renderCalendar(date) {
 
     // 前月ボタン: 今月が表示されている場合は非表示
     if (currentMonthOnly.getTime() <= new Date(today.getFullYear(), today.getMonth(), 1).getTime()) {
-        prevMonthBtn.style.visibility = 'hidden';
+        prevMonthBtnList.style.visibility = 'hidden';
     } else {
-        prevMonthBtn.style.visibility = 'visible';
+        prevMonthBtnList.style.visibility = 'visible';
     }
 
     // 次月ボタン: 予約可能範囲の最終月（来月）が表示されている場合は非表示
     if (currentMonthOnly.getTime() >= nextMonthOnly.getTime()) {
-        nextMonthBtn.style.visibility = 'hidden';
+        nextMonthBtnList.style.visibility = 'hidden';
     } else {
-        nextMonthBtn.style.visibility = 'visible';
+        nextMonthBtnList.style.visibility = 'visible';
     }
 }
 
@@ -720,4 +739,265 @@ function updateCalendarSelection() {
             cell.classList.remove('selected-day'); 
         }
     });
+}
+
+// ====================================
+// 5. 予約画面 ロジック (修正・新規実装)
+// ====================================
+
+/**
+ * 予約画面の初期設定と月移動リスナーのセットアップ
+ */
+function setupReservationScreen() {
+    // 画面切り替え時にカレンダーをリセットして描画開始
+    CURRENT_SCREEN_DATE.setDate(1); 
+    fetchAndRenderCapacity(CURRENT_SCREEN_DATE);
+
+    // 予約画面専用のボタンにリスナーを設定
+    if (!prevMonthBtnRes.hasAttribute('data-res-listener')) {
+        prevMonthBtnRes.addEventListener('click', () => {
+            CURRENT_SCREEN_DATE.setMonth(CURRENT_SCREEN_DATE.getMonth() - 1);
+            fetchAndRenderCapacity(CURRENT_SCREEN_DATE);
+        });
+        nextMonthBtnRes.addEventListener('click', () => {
+            CURRENT_SCREEN_DATE.setMonth(CURRENT_SCREEN_DATE.getMonth() + 1);
+            fetchAndRenderCapacity(CURRENT_SCREEN_DATE);
+        });
+        prevMonthBtnRes.setAttribute('data-res-listener', 'true');
+    }
+}
+
+/**
+ * 予約画面のカレンダー描画と、残席情報の取得・表示をメインで処理する
+ * @param {Date} date - 表示する月
+ */
+async function fetchAndRenderCapacity(date) {
+    // 1. カレンダーのUIを先に描画する (ローディング表示)
+    renderReservationCalendar(date, 'loading'); 
+
+    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`; 
+    let capacityData = {};
+
+    // 2. GASからその月の予約可能クラス情報を取得する (mode: "getCapacityForMonth" を想定)
+    try {
+        const payload = { 
+            mode: "getCapacityForMonth", 
+            year: date.getFullYear(), 
+            month: date.getMonth() + 1
+        }; 
+        const formBody = new URLSearchParams(payload);
+        
+        const res = await fetch(GAS_BASE_URL, {
+            method: "POST", 
+            headers: { "Content-Type": "application/x-www-form-urlencoded" }, 
+            body: formBody
+        });
+        
+        const json = await res.json();
+        
+        if (json.success && json.capacityData) {
+            capacityData = json.capacityData; // { 'YYYY-MM-DD': [{...}, ...] }
+            AVAILABLE_CAPACITY_DATA[monthKey] = capacityData; // メモリに保存
+        } else {
+            console.error("残席情報の取得に失敗しました", json.message);
+        }
+    } catch (e) {
+        console.error("残席情報取得時の通信エラー", e);
+    }
+
+    // 3. 取得した残席情報を使ってカレンダーを再描画する
+    renderReservationCalendar(date, 'loaded', capacityData);
+}
+
+// ------------------------------
+// 予約画面のカレンダー描画ロジック 
+// ------------------------------
+function renderReservationCalendar(date, status, capacityData = {}) {
+    
+    const year = date.getFullYear();
+    const month = date.getMonth(); // 0-11
+    
+    // ⭐️ 予約画面専用のDOM要素を参照
+    currentMonthSpanRes.textContent = `${year}年 ${month + 1}月`; 
+    calendarContainerRes.innerHTML = ''; // クリア
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); 
+    const firstDayOfMonth = new Date(year, month, 1);
+    const lastDayOfMonth = new Date(year, month + 1, 0);
+    
+    // 予約可能月制限 (MAX_RESERVABLE_MONTHSに基づく)
+    // MAX_RESERVABLE_MONTHS はグローバル変数に定義済みとする
+    const maxReservableDateBoundary = new Date(today.getFullYear(), today.getMonth() + MAX_RESERVABLE_MONTHS, 1);
+
+    // 【月移動ボタン制御】
+    prevMonthBtnRes.disabled = (year === today.getFullYear() && month === today.getMonth());
+    nextMonthBtnRes.disabled = (firstDayOfMonth.getTime() >= maxReservableDateBoundary.getTime());
+
+    // 【曜日のヘッダー作成】
+    const daysOfWeek = ['日', '月', '火', '水', '木', '金', '土'];
+    let calendarHtml = '';
+    daysOfWeek.forEach(day => { calendarHtml += `<div class="day-header">${day}</div>`; });
+
+    // 【1日の開始曜日までの空セルを作成】
+    const startDayOfWeek = firstDayOfMonth.getDay(); 
+    for (let i = 0; i < startDayOfWeek; i++) {
+        calendarHtml += '<div class="day empty"></div>';
+    }
+
+    // ⭐ 日付セルを作成
+    for (let day = 1; day <= lastDayOfMonth.getDate(); day++) {
+        const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const currentDateOnly = new Date(dateString); 
+        
+        let dayClass = 'day date-cell';
+        let capacityInfo = ''; 
+        let isReservable = false;
+        
+        if (currentDateOnly < TODAY_DATE_ONLY) {
+            dayClass += ' past'; // 過去日
+        } else {
+            // capacityData は { 'YYYY-MM-DD': [{ ... }] } の形式
+            const dayCapacity = capacityData[dateString] || [];
+            
+            if (dayCapacity.length > 0) {
+                // その日に一つでも残席があるクラスがあれば予約可能
+                const totalRemaining = dayCapacity.reduce((sum, item) => sum + item.remainingCapacity, 0);
+                if (totalRemaining > 0) {
+                    isReservable = true;
+                    capacityInfo = `残り ${totalRemaining}`; // 日付の下に総残席数を表示
+                }
+            }
+
+            if (isReservable) {
+                dayClass += ' reservable clickable';
+            } else {
+                dayClass += ' fully-booked';
+                capacityInfo = '満席';
+            }
+        }
+        
+        // ローディング中の表示
+        if (status === 'loading') {
+            capacityInfo = '読込中...';
+            dayClass = 'day date-cell loading';
+        }
+
+        calendarHtml += `
+            <div class="${dayClass}" data-date="${dateString}">
+                ${day}
+                <div class="capacity-info">${capacityInfo}</div> 
+            </div>
+        `;
+    }
+    
+    // ⭐️ 予約画面専用のカレンダーコンテナに書き込む
+    calendarContainerRes.innerHTML = calendarHtml;
+
+    // ⭐ リスナー再設定 (reservable clickableな要素のみ)
+    if (status === 'loaded') {
+        calendarContainerRes.querySelectorAll('.day.clickable').forEach(cell => {
+            cell.addEventListener('click', (event) => selectDate(event.currentTarget.dataset.date));
+        });
+    }
+}
+
+// ------------------------------
+// 日付がクリックされたときの処理
+// ------------------------------
+function selectDate(dateString) {
+    selectedDateText.textContent = `📅 ${dateString} の予約可能なクラス`;
+    selectionDetails.classList.remove('hidden');
+    
+    // 該当日の残席情報を AVAILABLE_CAPACITY_DATA から取得し、リストを描画
+    const monthKey = `${CURRENT_SCREEN_DATE.getFullYear()}-${String(CURRENT_SCREEN_DATE.getMonth() + 1).padStart(2, '0')}`;
+    const monthCapacity = AVAILABLE_CAPACITY_DATA[monthKey] || {};
+    const dayCapacity = monthCapacity[dateString] || [];
+
+    // dateString を渡してボタンのデータ属性に持たせる
+    renderAvailableClassesList(dayCapacity.filter(item => item.remainingCapacity > 0), dateString); 
+}
+
+// ------------------------------
+// 予約可能クラスのリストを描画
+// ------------------------------
+function renderAvailableClassesList(classes, dateString) {
+    let listHtml = '';
+    
+    if (classes.length === 0) {
+        availableClassesList.innerHTML = '<p>この日は予約可能なクラスがありません。</p>';
+        return;
+    }
+
+    classes.forEach(item => {
+        listHtml += `
+            <button class="class-select-button" 
+                    data-lesson-id="${item.lessonId}" 
+                    data-date="${dateString}" 
+                    data-time="${item.startTime}">
+                ${item.startTime} - ${item.className} (残席: ${item.remainingCapacity})
+            </button>
+        `;
+    });
+    
+    availableClassesList.innerHTML = listHtml;
+    
+    // 予約ボタンのリスナー設定
+    document.querySelectorAll('.class-select-button').forEach(button => {
+        button.addEventListener('click', (event) => confirmReservation(event.currentTarget));
+    });
+}
+
+// ------------------------------
+// 予約確認モーダル表示
+// ------------------------------
+function confirmReservation(buttonElement) {
+    const lessonId = buttonElement.dataset.lessonId;
+    const dateString = buttonElement.dataset.date;
+    const time = buttonElement.dataset.time;
+    const classNameText = buttonElement.textContent.split('(')[0].trim(); // クラス名と時刻
+
+    const message = `${dateString} ${time} の ${classNameText} を予約します。よろしいですか？`;
+
+    // showCustomModal はセクション4で定義済みとする
+    showCustomModal(
+        '予約の確定',
+        message,
+        () => handleReservation(lessonId, dateString, time, classNameText)
+    );
+}
+
+// ------------------------------
+// 予約確定処理（GASと通信）
+// ------------------------------
+async function handleReservation(lessonId, dateString, time, classNameText) {
+    const payload = { 
+        mode: "makeReservation", 
+        userId: userId, 
+        lessonId: lessonId,
+        date: dateString, // YYYY-MM-DD
+        time: time,       // HH:mm
+        className: classNameText
+    };
+    const formBody = new URLSearchParams(payload);
+
+    try {
+        const res = await fetch(GAS_BASE_URL, { 
+            method: "POST", 
+            headers: { "Content-Type": "application/x-www-form-urlencoded" }, 
+            body: formBody 
+        });
+        const json = await res.json();
+
+        if (json.success) {
+            alert("予約が完了しました！");
+            // 予約成功後、カレンダーを再描画して残席情報を更新
+            fetchAndRenderCapacity(CURRENT_SCREEN_DATE);
+        } else {
+            alert("予約に失敗しました: " + (json.message || "残席がないか、上限を超えています。"));
+        }
+    } catch (e) {
+        alert("通信エラーが発生しました");
+        console.error("予約通信エラー:", e);
+    }
 }

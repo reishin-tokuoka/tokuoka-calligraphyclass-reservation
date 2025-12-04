@@ -32,9 +32,23 @@
         <button id="classSubmitBtn" class="hidden">登録する</button>
       </div>
 
-      <div id="reservationArea" class="hidden">
-        <h2>授業予約</h2>
-        （ここに予約画面のコンテンツ）
+      <div id="reservationArea" class="screen hidden">
+          <h2>🖋️ 新規予約</h2>
+
+          <div class="calendar-header">
+              <button id="prev-month-btn-res">←</button>
+              <span id="current-month-res">2025年 12月</span>
+              <button id="next-month-btn-res">→</button>
+          </div>
+
+          <div id="calendar-container-res" class="calendar">
+          </div>
+
+          <div id="selectionDetails" class="selection-details hidden">
+              <h3 id="selectedDateText"></h3>
+              <div id="availableClassesList">
+              </div>
+          </div>
       </div>
 
       <div id="listArea" class="hidden">
