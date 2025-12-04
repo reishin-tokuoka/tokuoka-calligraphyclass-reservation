@@ -364,7 +364,7 @@ h1 {
     position: absolute;
     bottom: 3px;
     left: 3px;
-    font-size: 10px;
+    font-size: 8px;
     font-weight: bold;
     color: #28a745; /* 緑色 */
 }
@@ -442,7 +442,7 @@ h1 {
 .calendar-cell.my-reserved {
     /* 予約済みの日は他の色を上書きして薄い水色にする */
     background-color: #e6f7ff; /* 薄い水色 */
-    border-top: 3px solid #4AC3FF; /* LINEブルーで上部に線 */
+    border-top: 2px solid #4AC3FF; /* LINEブルーで上部に線 */
     /* 予約可/満席の下線と共存させるため、border-bottomはそのまま残す */
 }
 
@@ -479,12 +479,12 @@ h1 {
 /* 空席あり：緑 */
 .calendar-cell.available {
     cursor: pointer;
-    border-bottom: 3px solid #28a745; /* 緑の線 */
+    border-bottom: 2px solid #28a745; /* 緑の線 */
 }
 
 /* 満席：赤 */
 .calendar-cell.full {
-    border-bottom: 3px solid #dc3545; /* 赤の線 */
+    border-bottom: 2px solid #dc3545; /* 赤の線 */
     color: #333; /* 文字色は黒を維持（見やすさのため）*/
 }
 
