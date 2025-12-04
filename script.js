@@ -571,7 +571,8 @@ function createReservationItem(reservation) {
     `;
     
     if (isCancellable) {
-        item.querySelector('.cancel-button').addEventListener('click', () => handleCancel(id));
+        const message = `${formattedTime} の予約をキャンセルします。よろしいですか？`;
+        item.querySelector('.cancel-button').addEventListener('click', () => handleCancel(id, message));
     }
 
     return item;
@@ -580,10 +581,10 @@ function createReservationItem(reservation) {
 // ------------------------------
 // キャンセル処理（カスタムモーダル）
 // ------------------------------
-const handleCancel = (id) => {
+const handleCancel = (id, message) => {
     showCustomModal(
         '予約のキャンセル',
-        '本当にこの予約をキャンセルしますか？この操作は元に戻せません。',
+        message,
         async () => {
             await executeCancellation(id);
         }
@@ -955,11 +956,10 @@ function confirmReservation(buttonElement) {
     const lessonId = buttonElement.dataset.lessonId;
     const dateString = buttonElement.dataset.date;
     const time = buttonElement.dataset.time;
-    const classNameText = buttonElement.textContent.split('(')[0].trim(); // クラス名と時刻
+    const classNameText = className //ユーザのクラス名を送信
 
     const message = `${dateString} ${time} の ${classNameText} を予約します。よろしいですか？`;
 
-    // showCustomModal はセクション4で定義済みとする
     showCustomModal(
         '予約の確定',
         message,
