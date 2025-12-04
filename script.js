@@ -786,7 +786,7 @@ async function fetchAndRenderCapacity(date) {
             mode: "getCalendarData", // 💡 統合モードに変更
             year: date.getFullYear(), 
             month: date.getMonth() + 1,
-            userId: USER_ID // 💡 USER_ID (liff.getDecodedIDToken().subなど)を渡す
+            userId: userId
         }; 
         const formBody = new URLSearchParams(payload);
         
