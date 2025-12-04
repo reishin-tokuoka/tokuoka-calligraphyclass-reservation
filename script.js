@@ -743,7 +743,7 @@ function updateCalendarSelection() {
 }
 
 // ====================================
-// 5. 予約画面 ロジック (修正・新規実装)
+// 予約画面 ロジック
 // ====================================
 
 /**
@@ -778,13 +778,15 @@ async function fetchAndRenderCapacity(date) {
 
     const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`; 
     let capacityData = {};
+    let myReservations = [];
 
-    // 2. GASからその月の予約可能クラス情報を取得する (mode: "getCapacityForMonth" を想定)
+    // 2. GASから統合されたカレンダー情報を取得する
     try {
         const payload = { 
-            mode: "getCapacityForMonth", 
+            mode: "getCalendarData", // 💡 統合モードに変更
             year: date.getFullYear(), 
-            month: date.getMonth() + 1
+            month: date.getMonth() + 1,
+            userId: USER_ID // 💡 USER_ID (liff.getDecodedIDToken().subなど)を渡す
         }; 
         const formBody = new URLSearchParams(payload);
         
@@ -796,24 +798,28 @@ async function fetchAndRenderCapacity(date) {
         
         const json = await res.json();
         
-        if (json.success && json.capacityData) {
-            capacityData = json.capacityData; // { 'YYYY-MM-DD': [{...}, ...] }
-            AVAILABLE_CAPACITY_DATA[monthKey] = capacityData; // メモリに保存
+        if (json.success) {
+            // 💡 統合されたレスポンスから両方のデータを取得
+            capacityData = json.capacityData || {}; 
+            myReservations = json.myReservedDates || []; 
+
+            AVAILABLE_CAPACITY_DATA[monthKey] = capacityData; // 残席情報のみメモリに保存
         } else {
-            console.error("残席情報の取得に失敗しました", json.message);
+            console.error("カレンダー情報の取得に失敗しました", json.message);
         }
     } catch (e) {
-        console.error("残席情報取得時の通信エラー", e);
+        console.error("カレンダー情報取得時の通信エラー", e);
     }
 
-    // 3. 取得した残席情報を使ってカレンダーを再描画する
-    renderReservationCalendar(date, 'loaded', capacityData);
+    // 3. 取得した残席情報と予約日リストを使ってカレンダーを再描画する
+    // 💡 myReservations を第4引数として渡します
+    renderReservationCalendar(date, 'loaded', capacityData, myReservations);
 }
 
 // ------------------------------
 // 予約画面のカレンダー描画ロジック 
 // ------------------------------
-function renderReservationCalendar(date, status, capacityData = {}) {
+function renderReservationCalendar(date, status, capacityData = {}, myReservations = []) {
     
     const year = date.getFullYear();
     const month = date.getMonth(); // 0-11
