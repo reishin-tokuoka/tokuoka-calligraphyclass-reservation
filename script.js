@@ -956,7 +956,7 @@ function confirmReservation(buttonElement) {
     const lessonId = buttonElement.dataset.lessonId;
     const dateString = buttonElement.dataset.date;
     const time = buttonElement.dataset.time;
-    const classNameText = className //ユーザのクラス名を送信
+    const classNameText = userClassName //ユーザのクラス名を送信
 
     const message = `${dateString} ${time} の ${classNameText} を予約します。よろしいですか？`;
 
