@@ -916,7 +916,7 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
 
     // ⭐ リスナー再設定 (reservable clickableな要素のみ)
     if (status === 'loaded') {
-        calendarContainerRes.querySelectorAll('.day.clickable').forEach(cell => {
+        calendarContainerRes.querySelectorAll('.calendar-cell.clickable').forEach(cell => {
             cell.addEventListener('click', (event) => selectDate(event.currentTarget.dataset.date));
         });
     }
