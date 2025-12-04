@@ -298,8 +298,8 @@ h1 {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 1px;
-    background-color: #f8f9fa; /* グリッドの線として機能 */
-    border: 1px solid #ccc;
+    background-color: white; /* グリッドの線として機能 */
+    /* border: 1px solid #ccc; */
     border-radius: 5px;
     overflow: hidden; /* 角丸を適用 */
 }
@@ -422,4 +422,80 @@ h1 {
     background-color: #6c757d; /* グレーアウト */
     cursor: not-allowed;
     opacity: 0.6;
+}
+
+/* ==================================== */
+/* 授業なしの日 (提案色：薄い灰色) */
+/* ==================================== */
+.calendar-cell.no-lesson {
+    background-color: #f9f9f9; /* わずかに灰色 */
+    color: #bbb; /* 文字を薄く */
+    cursor: default;
+    border-bottom: none; /* 下線を削除 */
+}
+
+/* ==================================== */
+/* 予約済みの日の強調 (一覧画面と同じ青) */
+/* ==================================== */
+
+/* 予約済みのセルに適用 */
+.calendar-cell.my-reserved {
+    /* 予約済みの日は他の色を上書きして薄い水色にする */
+    background-color: #e6f7ff; /* 薄い水色 */
+    border-top: 3px solid #4AC3FF; /* LINEブルーで上部に線 */
+    /* 予約可/満席の下線と共存させるため、border-bottomはそのまま残す */
+}
+
+/* 予約済みマークのバッジ */
+.my-reserved-badge {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    background-color: #4AC3FF; /* LINEブルー */
+    color: white;
+    font-size: 8px;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-weight: bold;
+    line-height: 1;
+    z-index: 10; /* 他の要素より手前に表示 */
+}
+
+/* 日付の数字を囲むspan（JSで追加） */
+.calendar-cell .date-number {
+    display: block; /* 日付を独立させ、右寄せを維持 */
+}
+
+/* 予約済みの日の日付番号を強調 */
+.calendar-cell.my-reserved .date-number {
+    color: #007bff; /* 青文字 */
+    font-weight: bold;
+}
+
+/* ==================================== */
+/* 既存のクラスの再確認 (色の役割) */
+/* ==================================== */
+
+/* 空席あり：緑 */
+.calendar-cell.available {
+    cursor: pointer;
+    border-bottom: 3px solid #28a745; /* 緑の線 */
+}
+
+/* 満席：赤 */
+.calendar-cell.full {
+    border-bottom: 3px solid #dc3545; /* 赤の線 */
+    color: #333; /* 文字色は黒を維持（見やすさのため）*/
+}
+
+/* 予約枠を示すインジケーター（残席数や「満席」の文字） */
+.capacity-indicator {
+    /* ... 既存のスタイル ... */
+    font-weight: bold;
+    /* 満席の場合は文字色を赤にする */
+    color: #28a745; /* デフォルトは緑 */
+}
+
+.calendar-cell.full .capacity-indicator {
+    color: #dc3545; /* 満席の日は赤 */
 }

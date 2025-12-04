@@ -818,7 +818,7 @@ function renderReservationCalendar(date, status, capacityData = {}) {
     const year = date.getFullYear();
     const month = date.getMonth(); // 0-11
     
-    // ⭐️ 予約画面専用のDOM要素を参照
+    // 予約画面専用のDOM要素を参照
     currentMonthSpanRes.textContent = `${year}年 ${month + 1}月`; 
     calendarContainerRes.innerHTML = ''; // クリア
 
@@ -838,12 +838,12 @@ function renderReservationCalendar(date, status, capacityData = {}) {
     // 【曜日のヘッダー作成】
     const daysOfWeek = ['日', '月', '火', '水', '木', '金', '土'];
     let calendarHtml = '';
-    daysOfWeek.forEach(day => { calendarHtml += `<div class="day-header">${day}</div>`; });
+    daysOfWeek.forEach(day => { calendarHtml += `<div class="calendar-day-header">${day}</div>`; });
 
     // 【1日の開始曜日までの空セルを作成】
     const startDayOfWeek = firstDayOfMonth.getDay(); 
     for (let i = 0; i < startDayOfWeek; i++) {
-        calendarHtml += '<div class="day empty"></div>';
+        calendarHtml += '<div class="calendar-cell inactive"></div>';
     }
 
     // ⭐ 日付セルを作成
@@ -851,41 +851,57 @@ function renderReservationCalendar(date, status, capacityData = {}) {
         const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         const currentDateOnly = new Date(dateString); 
         
-        let dayClass = 'day date-cell';
+        let dayClass = 'calendar-cell';
         let capacityInfo = ''; 
         let isReservable = false;
+        let isMyReserved = false; // 予約済みフラグを追加
         
-        if (currentDateOnly < TODAY_DATE_ONLY) {
-            dayClass += ' past'; // 過去日
+        if (currentDateOnly < today) {
+            dayClass += ' inactive';
         } else {
             // capacityData は { 'YYYY-MM-DD': [{ ... }] } の形式
             const dayCapacity = capacityData[dateString] || [];
             
-            if (dayCapacity.length > 0) {
-                // その日に一つでも残席があるクラスがあれば予約可能
-                const totalRemaining = dayCapacity.reduce((sum, item) => sum + item.remainingCapacity, 0);
-                if (totalRemaining > 0) {
-                    isReservable = true;
-                }
-            }
-
-            if (isReservable) {
-                dayClass += ' reservable clickable';
+            // --- 授業なしの判定 ---
+            if (dayCapacity.length === 0) {
+                // 授業なし：提案色（薄い灰色）の inactive を使用
+                dayClass += ' no-lesson inactive'; // 授業なしの日
             } else {
-                dayClass += ' fully-booked';
+                // --- 授業あり（予約可能/満席の判定） ---
+                const totalRemaining = dayCapacity.reduce((sum, item) => sum + item.remainingCapacity, 0);
+
+                if (totalRemaining > 0) {
+                    // 空席あり：緑 (reservable clickable)
+                    dayClass += ' available clickable';
+                    capacityInfo = `${totalRemaining}枠`; // 残席数を表示
+                    isReservable = true;
+                } else {
+                    // 満席：赤 (fully-booked full)
+                    dayClass += ' fully-booked full';
+                    capacityInfo = '満席';
+                }
+                
+                // --- 予約済みの判定 ---
+                // myReservations は 'YYYY-MM-DD' の日付文字列の配列と想定
+                if (myReservations.includes(dateString)) {
+                    // 予約済みの日：青 (my-reserved)
+                    dayClass += ' my-reserved';
+                    isMyReserved = true;
+                }
             }
         }
         
         // ローディング中の表示
         if (status === 'loading') {
             capacityInfo = '読込中...';
-            dayClass = 'day date-cell loading';
+            dayClass = 'calendar-cell loading'; // ロード中は上書き
         }
 
         calendarHtml += `
             <div class="${dayClass}" data-date="${dateString}">
-                ${day}
-                <div class="capacity-info">${capacityInfo}</div> 
+                <span class="date-number">${day}</span> 
+                ${isMyReserved ? '<span class="my-reserved-badge">予約済</span>' : ''} 
+                ${isReservable || dayCapacity.length > 0 ? `<div class="capacity-indicator">${capacityInfo}</div>` : ''}
             </div>
         `;
     }
