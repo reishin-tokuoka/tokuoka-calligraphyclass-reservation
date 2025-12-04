@@ -299,7 +299,7 @@ h1 {
     grid-template-columns: repeat(7, 1fr);
     gap: 1px;
     background-color: white; /* グリッドの線として機能 */
-    /* border: 1px solid #ccc; */
+    border: 1px solid #ccc;
     border-radius: 5px;
     overflow: hidden; /* 角丸を適用 */
 }
@@ -326,7 +326,7 @@ h1 {
 /* 個々の日付セル */
 .calendar-cell {
     background-color: #fff;
-    height: 60px; /* セルの高さを確保 */
+    height: 40px; /* セルの高さを確保 */
     padding: 5px;
     text-align: right;
     font-size: 16px;

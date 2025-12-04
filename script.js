@@ -878,7 +878,7 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
                 if (totalRemaining > 0) {
                     // 空席あり：緑 (reservable clickable)
                     dayClass += ' available clickable';
-                    capacityInfo = `${totalRemaining}枠`; // 残席数を表示
+                    capacityInfo = '予約可'; 
                     isReservable = true;
                 } else {
                     // 満席：赤 (fully-booked full)
