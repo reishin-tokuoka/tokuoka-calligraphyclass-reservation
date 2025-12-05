@@ -287,6 +287,7 @@ async function fetchAndRenderCapacity(date) {
     const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`; 
     let capacityData = {};
     let myReservations = [];
+    let myAttendedDates = [];
 
     // 2. GASから統合されたカレンダー情報を取得する
     try {
