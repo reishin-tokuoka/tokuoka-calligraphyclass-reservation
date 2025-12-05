@@ -14,35 +14,6 @@ h1 {
     color: #333;
 }
 
-
-/* ==================================== */
-/* クラス・回数選択エリア */
-/* ==================================== */
-#user-select {
-    max-width: 400px;
-    margin: 20px auto;
-    padding: 20px;
-    background-color: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    text-align: center;
-}
-
-/* 見出し */
-#user-select h3 {
-    font-size: 1.2em;
-    color: #007bff; /* メインカラー */
-    margin-top: 25px;
-    margin-bottom: 10px;
-    font-weight: 600;
-    border-bottom: 2px solid #e0f7ff;
-    padding-bottom: 5px;
-}
-
-/* ------------------------------------- */
-/* フォーム要素 (select, button) */
-/* ------------------------------------- */
-
 /* selectタグの共通スタイル */
 select {
     width: 100%;
@@ -77,6 +48,62 @@ select:focus {
     box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
     outline: none;
 }
+
+/* ==================================== */
+/* 予約画面トップに表示するユーザ情報
+/* ==================================== */
+#userClassInfo {
+    background-color: #e9f7ff; /* 非常に薄い青の背景 */
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border-left: 5px solid #007bff; /* メインカラーのアクセントライン */
+}
+
+/* ユーザー名 (より目立たせる) */
+#userName {
+    font-size: 1.3em;
+    font-weight: bold;
+    color: #343A40; /* 濃いグレー/黒 */
+    margin-bottom: 5px;
+}
+
+/* クラス名 (ブランドカラーで表示) */
+#userClassName {
+    font-size: 1.1em;
+    color: #007BFF; /* メインカラーの青 */
+    font-weight: 600;
+}
+
+/* ==================================== */
+/* クラス・回数選択エリア */
+/* ==================================== */
+#user-select {
+    max-width: 400px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+/* 見出し */
+#user-select h3 {
+    font-size: 1.2em;
+    color: #007bff; /* メインカラー */
+    margin-top: 25px;
+    margin-bottom: 10px;
+    font-weight: 600;
+    border-bottom: 2px solid #e0f7ff;
+    padding-bottom: 5px;
+}
+
+/* ------------------------------------- */
+/* フォーム要素 (select, button) */
+/* ------------------------------------- */
+
+
 
 /* ボタンのスタイル */
 #classSubmitBtn {

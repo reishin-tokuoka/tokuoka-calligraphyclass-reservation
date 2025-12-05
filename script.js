@@ -24,6 +24,7 @@ const nextMonthBtnRes = document.getElementById('next-month-btn-res');         /
 const selectionDetails = document.getElementById('selectionDetails'); 
 const selectedDateText = document.getElementById('selectedDateText');
 const availableClassesList = document.getElementById('availableClassesList');
+const classInfo = document.getElementById('classInfo');
 
 // カスタムモーダル要素
 const customModal = document.getElementById('custom-modal');
@@ -187,9 +188,9 @@ function setupClassSelect(config) {
 function confirmClassRegister(classIndex, upperLimit, config) {
     const className = config.CLASS_INFO.CLASS_NAME[classIndex];
 
-    const message = `クラスは ${className}の 月${upperLimit}回でよろしいですか？`;
+    const message = `クラスは「${className} 月${upperLimit}回」でよろしいですか？`;
     showCustomModal(
-        'クラスの確定',
+        'クラス登録',
         message,
         async () => {
             await registerUserClass(classIndex, upperLimit, config);
@@ -223,9 +224,13 @@ async function registerUserClass(classIndex, upperLimitNumber, config) {
 
     let messageText = "";
     if (json.success) {
-      messageText = "クラスの登録が完了しました！";
-      sendResigterResultMessage(messageText);
-      switchPage(true);
+        // 画面表示用にデータを取得
+        userClassName = json.userInfo.className;  
+        userUpperLimitNumber = json.userInfo.upperLimitNumber;
+
+        messageText = "クラスの登録が完了しました！";
+        sendResigterResultMessage(messageText);
+        switchPage(true);
     } else {
       messageText = "クラスの登録に失敗しました！";
       sendResigterResultMessage(messageText);
@@ -262,6 +267,8 @@ async function switchPage(registerFlag) {
       userSelect.classList.add("hidden");
   }
   reservation.classList.remove("hidden");
+  // ユーザのクラス・回数を画面上部に表示
+  classInfo.innerHTML = `<span id='userName'>ユーザ名: ${displayName}</span><span id='userClassName'> クラス名: ${userClassName} 月${userUpperLimitNumber}回</span>`
   setupReservationScreen();
 }
 
