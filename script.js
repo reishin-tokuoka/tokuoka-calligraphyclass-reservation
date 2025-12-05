@@ -295,6 +295,7 @@ async function fetchAndRenderCapacity(date) {
             mode: "getCalendarData",
             year: date.getFullYear(), 
             month: date.getMonth() + 1,
+            monthKey: monthKey,
             userId: userId
         }; 
         const formBody = new URLSearchParams(payload);
@@ -322,14 +323,13 @@ async function fetchAndRenderCapacity(date) {
     }
 
     // 3. 取得した残席情報と予約日リストを使ってカレンダーを再描画する
-    // 💡 myReservations を第4引数として渡します
-    renderReservationCalendar(date, 'loaded', capacityData, myReservations);
+    renderReservationCalendar(date, 'loaded', capacityData, myReservations, myAttendedDates);
 }
 
 // ------------------------------
 // 予約画面のカレンダー描画ロジック 
 // ------------------------------
-function renderReservationCalendar(date, status, capacityData = {}, myReservations = []) {
+function renderReservationCalendar(date, status, capacityData = {}, myReservations = [], myAttendedDates = []) {
     
     const year = date.getFullYear();
     const month = date.getMonth(); // 0-11
