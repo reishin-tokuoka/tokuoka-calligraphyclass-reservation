@@ -177,9 +177,24 @@ function setupClassSelect(config) {
   submitBtn.addEventListener("click", () => {
     const selectedClassIndex = classSelect.value;
     const selectedUpperLimitNumber = countSelect.value;
-    registerUserClass(selectedClassIndex, selectedUpperLimitNumber, config);
+    confirmClassRegister(selectedClassIndex, selectedUpperLimitNumber, config);
   });
+}
 
+// ------------------------------
+// クラス登録確認モーダル表示
+// ------------------------------
+function confirmClassRegister(classIndex, upperLimit, config) {
+    const className = config.CLASS_INFO.CLASS_NAME[classIndex];
+
+    const message = `クラスは ${className}の 月${upperLimit}回でよろしいですか？`;
+    showCustomModal(
+        'クラスの確定',
+        message,
+        async () => {
+            await registerUserClass(classIndex, upperLimit, config);
+        }
+    );
 }
 
 async function registerUserClass(classIndex, upperLimitNumber, config) {
