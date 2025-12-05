@@ -3,7 +3,7 @@
 // ====================================
 
 // 既存のグローバル変数
-const APP_VERSION = "VERSION_003"; // キャッシュ無効化用
+const APP_VERSION = "VERSION_004"; // キャッシュ無効化用
 let userId = "INIT_USER_ID";
 let displayName = "INIT_USER_NAME";
 let userClassName = "";
