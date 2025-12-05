@@ -308,8 +308,9 @@ async function fetchAndRenderCapacity(date) {
         
         if (json.success) {
             // 💡 統合されたレスポンスから両方のデータを取得
-            capacityData = json.result.capacityData || {};
-            myReservations = json.result.myReservedDates || [];
+            capacityData = json.capacityData || {};
+            myReservations = json.myReservedDates || [];
+            myAttendedDates = json.myAttendedDates || [];
 
             AVAILABLE_CAPACITY_DATA[monthKey] = capacityData; // 残席情報のみメモリに保存
         } else {
