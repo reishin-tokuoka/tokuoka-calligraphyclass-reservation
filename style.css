@@ -461,6 +461,25 @@ select:focus {
 }
 
 /* ==================================== */
+/* 受講済みの日
+/* ==================================== */
+
+/* 受講済みマークのバッジ */
+.my-attended-badge {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    background-color: #6c757d; /* グレー */
+    color: white;
+    font-size: 8px;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-weight: bold;
+    line-height: 1;
+    z-index: 10; /* 他の要素より手前に表示 */
+}
+
+/* ==================================== */
 /* 予約済みの日の強調 (一覧画面と同じ青) */
 /* ==================================== */
 

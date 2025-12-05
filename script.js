@@ -3,7 +3,7 @@
 // ====================================
 
 // 既存のグローバル変数
-const APP_VERSION = "VERSION_004"; // キャッシュ無効化用
+const APP_VERSION = "VERSION_001"; // キャッシュ無効化用
 let userId = "INIT_USER_ID";
 let displayName = "INIT_USER_NAME";
 let userClassName = "";
@@ -71,7 +71,7 @@ async function loadConfig() {
     if (cache) {
       return JSON.parse(cache);
     }
-    const res = await fetch("/config.json");
+    const res = await fetch(GAS_BASE_URL + "?mode=config");
 
     // 取得失敗時のエラーハンドリング
     if (!res.ok) {
@@ -395,6 +395,7 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
         let capacityInfo = ''; 
         let isReservable = false;
         let isMyReserved = false; // 予約済みフラグを追加
+        let isMyAttended = false;
         // capacityData は { 'YYYY-MM-DD': [{ ... }] } の形式
         const dayCapacity = capacityData[dateString] || [];
         
@@ -405,6 +406,13 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
             if (dayCapacity.length === 0) {
                 // 授業なし：提案色（薄い灰色）の inactive を使用
                 dayClass += ' no-lesson inactive'; // 授業なしの日
+
+                // 受講済みチェック(過去日は授業なし判定と同じになるので、ここでチェック)
+                const myAttendedDateCheck = myAttendedDates.some(dateTimeString => dateTimeString.includes(dateString));
+                if (myAttendedDateCheck) {
+                    dayClass += ' my-attended';
+                    isMyAttended = true;
+                }
             } else {
                 // --- 授業あり（予約可能/満席の判定） ---
                 const totalRemaining = dayCapacity.reduce((sum, item) => sum + item.remainingCapacity, 0);
@@ -421,7 +429,7 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
                 }
                 
                 // --- 予約済みの判定 ---
-                // myReservations は 'YYYY-MM-DD' の日付文字列の配列と想定（実際は、'YYYY-MM-DD HH:mm'　リスト表示で必要）
+                // myReservations は 'YYYY-MM-DD' の日付文字列の配列と想定なのでsome + inculudesで判定（実際は、'YYYY-MM-DD HH:mm'　リスト表示で必要）
                 const reservedCheck = myReservations.some(dateTimeString => dateTimeString.includes(dateString));
                 if (reservedCheck) {
                     // 予約済みの日：青 (my-reserved)
@@ -439,7 +447,8 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
 
         calendarHtml += `
             <div class="${dayClass}" data-date="${dateString}">
-                <span class="date-number">${day}</span> 
+                <span class="date-number">${day}</span>
+                ${isMyAttended ? '<span class="my-attended-badge">受講済</span>' : ''}
                 ${isMyReserved ? '<span class="my-reserved-badge">予約済</span>' : ''} 
                 ${isReservable || dayCapacity.length > 0 ? `<div class="capacity-indicator">${capacityInfo}</div>` : ''}
             </div>
