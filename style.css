@@ -62,7 +62,7 @@ select:focus {
 
 /* ユーザー名 (より目立たせる) */
 #userName {
-    font-size: 1.3em;
+    font-size: 1.0em;
     font-weight: bold;
     color: #343A40; /* 濃いグレー/黒 */
     margin-bottom: 5px;
@@ -70,7 +70,7 @@ select:focus {
 
 /* クラス名 (ブランドカラーで表示) */
 #userClassName {
-    font-size: 1.1em;
+    font-size: 1.0em;
     color: #007BFF; /* メインカラーの青 */
     font-weight: 600;
 }
