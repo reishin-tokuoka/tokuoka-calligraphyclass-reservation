@@ -268,7 +268,7 @@ async function switchPage(registerFlag) {
   }
   reservation.classList.remove("hidden");
   // ユーザのクラス・回数を画面上部に表示
-  classInfo.innerHTML = `<span id='userName'>ユーザ名: ${displayName}</span><span id='userClassName'> クラス名: ${userClassName} 月${userUpperLimitNumber}回</span>`;
+  classInfo.innerHTML = `<span id='userName'>👤 ${displayName}</span><span id='userClassName'> 🖌️ ${userClassName} 🗓️ 月${userUpperLimitNumber}回</span>`;
   setupReservationScreen();
 }
 
