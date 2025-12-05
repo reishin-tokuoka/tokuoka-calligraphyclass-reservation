@@ -14,93 +14,92 @@ h1 {
     color: #333;
 }
 
-/* ==================================== */
-/* 2. 一覧画面のカレンダーエリア */
-/* ==================================== */
-.calendar-area { 
-    background-color: white; 
-    padding: 10px; 
-    margin-bottom: 10px; 
-    border-bottom: 1px solid #e0e0e0; 
-}
-
-.calendar-nav { 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    margin-bottom: 10px; 
-    font-weight: bold; 
-}
-
-.calendar-grid { 
-    display: grid; 
-    grid-template-columns: repeat(7, 1fr); 
-    text-align: center; 
-    font-size: 14px; 
-}
-
-.day-header { 
-    font-weight: normal; 
-    color: #888; 
-    padding: 5px 0; 
-}
-
-.date-cell {
-    padding: 5px 0;
-}
-
-/* 予約がある日と今日 */
-.reserved-day { 
-    color: white; 
-    background-color: #4AC3FF; 
-    border-radius: 50%; 
-    width: 30px; 
-    height: 30px; 
-    line-height: 30px; 
-    margin: 0 auto; 
-    font-weight: bold; 
-    display: block;
-}
-.today { 
-    border: 2px solid #00b900; 
-    border-radius: 50%; 
-    width: 26px; 
-    height: 26px; 
-    line-height: 26px; 
-    margin: 0 auto; 
-    display: block;
-}
-
-/* ★★★ 凡例のスタイル ★★★ */
-.legend-area {
-    display: flex;
-    justify-content: flex-start;
-    gap: 20px;
-    padding: 10px 0;
-    font-size: 0.9em;
-    border-bottom: 1px solid #eee;
-}
-.legend-item {
-    display: flex;
-    align-items: center;
-}
-.legend-color {
-    display: inline-block;
-    width: 15px;
-    height: 15px;
-    border-radius: 3px;
-    margin-right: 5px;
-    border: 1px solid #ccc;
-}
-.today-color {
-    background-color: #00b900; /* カレンダーの .today と一致 */
-}
-.reserved-day-color {
-    background-color: #4AC3FF; /* カレンダーの .reserved-day と一致 */
-}
 
 /* ==================================== */
-/* 3. 予約リストエリア */
+/* クラス・回数選択エリア */
+/* ==================================== */
+#user-select {
+    max-width: 400px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+/* 見出し */
+#user-select h3 {
+    font-size: 1.2em;
+    color: #007bff; /* メインカラー */
+    margin-top: 25px;
+    margin-bottom: 10px;
+    font-weight: 600;
+    border-bottom: 2px solid #e0f7ff;
+    padding-bottom: 5px;
+}
+
+/* ------------------------------------- */
+/* フォーム要素 (select, button) */
+/* ------------------------------------- */
+
+/* selectタグの共通スタイル */
+select {
+    width: 100%;
+    padding: 12px 15px;
+    margin-bottom: 20px;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    background-color: #fcfcfc;
+    font-size: 1em;
+    cursor: pointer;
+    appearance: none; /* デフォルトの矢印を非表示 */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007bff%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-24.8%200L146.2%20205.2%2030.3%2069.4a17.6%2017.6%200%200%200-24.8%2024.8l130.4%20130.5c6.8%206.8%2017.8%206.8%2024.6%200l130.4-130.5a17.6%2017.6%200%200%200%200-24.8z%22%2F%3E%3C%2Fsvg%3E');
+    background-repeat: no-repeat;
+    background-position: right 15px top 50%;
+    background-size: 12px;
+}
+
+/* disabled状態のselect */
+select:disabled {
+    background-color: #e9ecef;
+    border-color: #adb5bd;
+    color: #6c757d;
+    cursor: not-allowed;
+    background-image: none; /* 矢印も非表示 */
+}
+
+/* フォーカス時の強調表示 */
+select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    outline: none;
+}
+
+/* ボタンのスタイル */
+#classSubmitBtn {
+    width: 100%;
+    padding: 15px;
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #ffffff;
+    background-color: #28a745; /* 成功・登録を表す緑色 */
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 10px;
+}
+
+/* ボタンのホバー/タップ時のスタイル */
+#classSubmitBtn:hover {
+    background-color: #218838;
+}
+
+/* ==================================== */
+/* 予約リストエリア */
 /* ==================================== */
 .reservation-item { 
     display: flex; 
