@@ -421,8 +421,9 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
                 }
                 
                 // --- 予約済みの判定 ---
-                // myReservations は 'YYYY-MM-DD' の日付文字列の配列と想定
-                if (myReservations.includes(dateString)) {
+                // myReservations は 'YYYY-MM-DD' の日付文字列の配列と想定（実際は、'YYYY-MM-DD HH:mm'　リスト表示で必要）
+                const reservedCheck = myReservations.some(dateTimeString => dateTimeString.includes(dateString));
+                if (reservedCheck) {
                     // 予約済みの日：青 (my-reserved)
                     dayClass += ' my-reserved';
                     isMyReserved = true;
