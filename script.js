@@ -12,7 +12,7 @@ const GAS_BASE_URL = "https://script.google.com/macros/s/AKfycbxQPiNqa3uHpnkrCiw
 
 // 予約画面用
 let AVAILABLE_CAPACITY_DATA = {}; // { 'YYYY-MM-DD': [{ startTime: 'HH:mm', className: '...', remainingCapacity: N }, ...] }
-const CURRENT_SCREEN_DATE = new Date(); // 予約画面のカレンダー表示月
+let CURRENT_SCREEN_DATE = new Date(); // 予約画面のカレンダー表示月
 const MAX_RESERVABLE_MONTHS = 1; // (今月、来月)
 
 // 予約画面用DOM要素
@@ -24,7 +24,7 @@ const nextMonthBtnRes = document.getElementById('next-month-btn-res');         /
 const selectionDetails = document.getElementById('selectionDetails'); 
 const selectedDateText = document.getElementById('selectedDateText');
 const availableClassesList = document.getElementById('availableClassesList');
-const classInfo = document.getElementById('classInfo');
+const classInfo = document.getElementById('userClassInfo');
 
 // カスタムモーダル要素
 const customModal = document.getElementById('custom-modal');
@@ -268,7 +268,7 @@ async function switchPage(registerFlag) {
   }
   reservation.classList.remove("hidden");
   // ユーザのクラス・回数を画面上部に表示
-  classInfo.innerHTML = `<span id='userName'>ユーザ名: ${displayName}</span><span id='userClassName'> クラス名: ${userClassName} 月${userUpperLimitNumber}回</span>`
+  classInfo.innerHTML = `<span id='userName'>ユーザ名: ${displayName}</span><span id='userClassName'> クラス名: ${userClassName} 月${userUpperLimitNumber}回</span>`;
   setupReservationScreen();
 }
 
@@ -282,6 +282,8 @@ async function switchPage(registerFlag) {
 function setupReservationScreen() {
     // 画面切り替え時にカレンダーをリセットして描画開始
     CURRENT_SCREEN_DATE.setDate(1); 
+    // 時刻情報もクリアして、0時0分0秒に設定
+    CURRENT_SCREEN_DATE.setHours(0, 0, 0, 0);
     fetchAndRenderCapacity(CURRENT_SCREEN_DATE);
 
     // 予約画面専用のボタンにリスナーを設定
@@ -581,7 +583,6 @@ async function executeCancellation(reservationId) {
         
         if (json.success) {
             alert("キャンセルが完了しました。");
-            await renderReservationListScreen();
         } else {
             alert("キャンセルに失敗しました: " + json.message);
         }
