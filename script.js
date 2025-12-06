@@ -84,10 +84,11 @@ async function loadConfig() {
 // ユーザー情報取得（GASと通信）
 // ------------------------------
 async function initUser(config) {
-  
+
   const currentUser = sessionStorage.getItem('userInfo');
   if (currentUser) {
-    switchPage(false, currentUser);
+    document.getElementById("loading").classList.add("hidden");
+    switchPage(false, JSON.parse(currentUser));
   } else {
     const accessToken = liff.getAccessToken();
     const userInfo = await fetchUserInfo(accessToken);
@@ -655,15 +656,7 @@ function getSessionUserInfo() {
       liff.closeWindow();
       return null;
     }
-
-    try {
-        // JSON文字列をオブジェクトに戻す
-        const userInfo = JSON.parse(userInfoJson);
-        return userInfo;
-    } catch (error) {
-        console.error('JSONパース中にエラーが発生しました:', error);
-        // データが壊れている場合はクリア
-        sessionStorage.removeItem('userInfo');
-        return null;
-    }
+    // JSON文字列をオブジェクトに戻す
+    const userInfo = JSON.parse(userInfoJson);
+    return userInfo;
 }
