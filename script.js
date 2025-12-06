@@ -556,7 +556,7 @@ async function handleReservation(lessonId, dateString, time, classNameText) {
         if (json.success) {
             alert("予約が完了しました！");
             // 選択エリアは非表示にする
-            selectionDetails.classList.remove('hidden');
+            selectionDetails.classList.add('hidden');
             // 予約成功後、カレンダーを再描画して残席情報を更新
             fetchAndRenderCapacity(CURRENT_SCREEN_DATE);
         } else {
