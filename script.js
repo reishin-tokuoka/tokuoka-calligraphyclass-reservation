@@ -4,10 +4,6 @@
 
 // 既存のグローバル変数
 const APP_VERSION = "VERSION_001"; // キャッシュ無効化用
-let userId = "INIT_USER_ID";
-let displayName = "INIT_USER_NAME";
-let userClassName = "";
-let userUpperLimitNumber = 0;
 const GAS_BASE_URL = "https://script.google.com/macros/s/AKfycbxQPiNqa3uHpnkrCiwlLL1CvHxZojD9PNqaUjV_-viiGDvZzelNEB_D-sQ3oAsixS78/exec";
 
 // 予約画面用
@@ -46,8 +42,8 @@ async function main() {
     console.log(config);
     
     try {
-        await liff.init({ liffId: config.LIFF_ID });
-        
+        await liff.init({ liffId: "2008592728-NkK9OenD" });
+
         if (!liff.isLoggedIn()) {
             liff.login(); 
             return;
@@ -88,33 +84,33 @@ async function loadConfig() {
 // ユーザー情報取得（GASと通信）
 // ------------------------------
 async function initUser(config) {
+  
+  const currentUser = sessionStorage.getItem('userInfo');
+  if (currentUser) {
+    switchPage(false, currentUser);
+  } else {
     const accessToken = liff.getAccessToken();
     const userInfo = await fetchUserInfo(accessToken);
-    console.log("GASからの返却値", userInfo);
     
     document.getElementById("loading").classList.add("hidden");
-
-    if (userInfo.exists && userInfo.data) {
-      const { userId: fetchedUserId, displayName: fetchedDisplayName, className, upperLimitNumber } = userInfo.data;
-      userId = fetchedUserId;
-      displayName = fetchedDisplayName;
-      userClassName = className; 
-      userUpperLimitNumber = upperLimitNumber;
-
+  
+    if (userInfo.exists && userInfo.data) {      
+      //セッションストレージにユーザ情報を保存
+      const sessionUserInfoJson = JSON.stringify(userInfo.data);
+      sessionStorage.setItem('userInfo', sessionUserInfoJson);
+  
       document.getElementById("user-select").classList.add("hidden");
-      switchPage(false);
+      switchPage(false, userInfo.data);
       
     } else if (userInfo.data) {
       const { userId: fetchedUserId, displayName: fetchedDisplayName } = userInfo.data;
-      userId = fetchedUserId;
-      displayName = fetchedDisplayName;
-
       document.getElementById("user-select").classList.remove("hidden");
-      setupClassSelect(config);
+      setupClassSelect(fetchedUserId, fetchedDisplayName, config);
     } else {
       console.error("ユーザー情報の取得に失敗しました。", userInfo.message);
       document.getElementById("errordisp").textContent = "ユーザー情報取得エラー: " + userInfo.message;
     }
+  }
 }
 
 // -----------------------------
@@ -135,7 +131,7 @@ async function fetchUserInfo(accessToken) {
 // -----------------------------
 // 授業選択画面の表示処理 
 // -----------------------------
-function setupClassSelect(config) {
+function setupClassSelect(userId, displayName, config) {
   const classSelect = document.getElementById("classSelect");
   const countSelect = document.getElementById("countSelect");
   const submitBtn = document.getElementById("classSubmitBtn");
@@ -178,14 +174,14 @@ function setupClassSelect(config) {
   submitBtn.addEventListener("click", () => {
     const selectedClassIndex = classSelect.value;
     const selectedUpperLimitNumber = countSelect.value;
-    confirmClassRegister(selectedClassIndex, selectedUpperLimitNumber, config);
+    confirmClassRegister(userId, displayName, selectedClassIndex, selectedUpperLimitNumber, config);
   });
 }
 
 // ------------------------------
 // クラス登録確認モーダル表示
 // ------------------------------
-function confirmClassRegister(classIndex, upperLimit, config) {
+function confirmClassRegister(userId, displayName, classIndex, upperLimit, config) {
     const className = config.CLASS_INFO.CLASS_NAME[classIndex];
 
     const message = `クラスは「${className} 月${upperLimit}回」でよろしいですか？`;
@@ -193,12 +189,12 @@ function confirmClassRegister(classIndex, upperLimit, config) {
         'クラス登録',
         message,
         async () => {
-            await registerUserClass(classIndex, upperLimit, config);
+            await registerUserClass(userId, displayName, classIndex, upperLimit, config);
         }
     );
 }
 
-async function registerUserClass(classIndex, upperLimitNumber, config) {
+async function registerUserClass(userId, displayName, classIndex, upperLimitNumber, config) {
   const className = config.CLASS_INFO.CLASS_NAME[classIndex];
 
   // 送信データをオブジェクトでまとめる
@@ -220,26 +216,25 @@ async function registerUserClass(classIndex, upperLimitNumber, config) {
     });
 
     const json = await res.json();
-    console.log(json);
 
-    let messageText = "";
-    if (json.success) {
-        // 画面表示用にデータを取得
-        userClassName = json.userInfo.className;  
-        userUpperLimitNumber = json.userInfo.upperLimitNumber;
+    if (json.success) {      
+      //セッションストレージにユーザ情報を保存
+      const sessionUserInfoJson = JSON.stringify(json.userInfo);
+      sessionStorage.setItem('userInfo', sessionUserInfoJson);
 
-        messageText = "クラスの登録が完了しました！";
-        sendResigterResultMessage(messageText);
-        switchPage(true);
+      alert("クラスの登録が完了しました！");
+      switchPage(true, json.userInfo);
     } else {
-      messageText = "クラスの登録に失敗しました！";
-      sendResigterResultMessage(messageText);
+      alert("クラスの登録に失敗しました！");
     }
   } catch (e) {
     alert("通信エラーが発生しました");
     console.log(e);
   }
 }
+
+// 操作するユーザ側でメッセージを送信する
+// NOTE: 現状、使用していないが、念のため残しておく
 function sendResigterResultMessage(messageText) {
   // 1. LIFFが初期化されているか、かつLINEアプリ内で動作しているかを確認
   if (!liff.isInClient()) {
@@ -259,7 +254,7 @@ function sendResigterResultMessage(messageText) {
 // ------------------------------
 // 画面切り替え
 // ------------------------------
-async function switchPage(registerFlag) {
+async function switchPage(registerFlag, userInfoJson = {}) {
   const reservation = reservationArea;
   const userSelect = document.getElementById("user-select");
 
@@ -268,7 +263,7 @@ async function switchPage(registerFlag) {
   }
   reservation.classList.remove("hidden");
   // ユーザのクラス・回数を画面上部に表示
-  classInfo.innerHTML = `<span id='userName'>   👤 ${displayName}</span><span id='userClassName'>  ┊  🖌️ ${userClassName} 🗓️ 月${userUpperLimitNumber}回</span>`;
+  classInfo.innerHTML = `<span id='userName'>   👤 ${userInfoJson.displayName}</span><span id='userClassName'>  ┊  🖌️ ${userInfoJson.className} 🗓️ 月${userInfoJson.upperLimitNumber}回</span>`;
   setupReservationScreen();
 }
 
@@ -306,8 +301,10 @@ function setupReservationScreen() {
  */
 async function fetchAndRenderCapacity(date) {
     // 1. カレンダーのUIを先に描画する (ローディング表示)
-    renderReservationCalendar(date, 'loading'); 
+    renderReservationCalendar(date, 'loading');
 
+    // セッションストレージからユーザ情報取得
+    const currentUser = getSessionUserInfo();
     const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`; 
     let capacityData = {};
     let myReservations = [];
@@ -320,7 +317,7 @@ async function fetchAndRenderCapacity(date) {
             year: date.getFullYear(), 
             month: date.getMonth() + 1,
             monthKey: monthKey,
-            userId: userId
+            userId: currentUser.userId
         }; 
         const formBody = new URLSearchParams(payload);
         
@@ -519,6 +516,8 @@ function confirmReservation(buttonElement) {
     const dateString = buttonElement.dataset.date;
     const time = buttonElement.dataset.time;
     const classNameText = userClassName //ユーザのクラス名を送信
+    // セッションストレージからユーザ情報取得
+    const currentUser = getSessionUserInfo();
 
     const message = `${dateString} ${time} の ${classNameText} を予約します。よろしいですか？`;
 
@@ -526,7 +525,7 @@ function confirmReservation(buttonElement) {
         '予約の確定',
         message,
         async () => {
-            await handleReservation(lessonId, dateString, time, classNameText);
+            await handleReservation(lessonId, dateString, time, classNameText, currentUser.userId);
         }
     );
 }
@@ -534,7 +533,7 @@ function confirmReservation(buttonElement) {
 // ------------------------------
 // 予約確定処理（GASと通信）
 // ------------------------------
-async function handleReservation(lessonId, dateString, time, classNameText) {
+async function handleReservation(lessonId, dateString, time, classNameText, userId) {
     const payload = { 
         mode: "makeReservation", 
         userId: userId, 
@@ -643,4 +642,28 @@ function setupModalListeners() {
     modalCancelBtn.addEventListener('click', () => {
         hideCustomModal();
     });
+}
+
+// ==========================================
+// セッションストレージに設定したユーザ情報を取得
+// ==========================================
+function getSessionUserInfo() {
+    const userInfoJson = sessionStorage.getItem('userInfo');
+
+    if (!userInfoJson) {
+      alert("ユーザ情報が取得できませんでした。一度、画面を閉じて開き直してください。");
+      liff.closeWindow();
+      return null;
+    }
+
+    try {
+        // JSON文字列をオブジェクトに戻す
+        const userInfo = JSON.parse(userInfoJson);
+        return userInfo;
+    } catch (error) {
+        console.error('JSONパース中にエラーが発生しました:', error);
+        // データが壊れている場合はクリア
+        sessionStorage.removeItem('userInfo');
+        return null;
+    }
 }
