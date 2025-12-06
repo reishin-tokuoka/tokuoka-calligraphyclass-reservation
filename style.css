@@ -71,7 +71,7 @@ select:focus {
 /* クラス名 (ブランドカラーで表示) */
 #userClassName {
     font-size: 0.8em;
-    color: #007BFF; /* メインカラーの青 */
+    color: #343A40; /* メインカラーの青 */
     font-weight: 600;
 }
 
