@@ -510,12 +510,13 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
     // -----------------------------------------------------------------
     if (isReserved) {
       buttonHtml = `
-            <span class="status-text reserved-info">${item.startTime} - ${item.endTime} ${item.className} (予約済み)</span>
+            <span class="status-text reserved-info">${item.startTime} - ${item.endTime} ${item.className}</span>
+            <span class="remaining-class-number">予約済み</span>
             <button class="class-select-button is-reserved-cancel" 
                     data-action="cancel" 
                     data-date="${dateString}" 
                     data-time="${item.startTime}">
-                キャンセル
+                キャンセルする
             </button>
             
         `;
@@ -525,13 +526,14 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
     // -----------------------------------------------------------------
     } else if (!isFull && !userLimitReached) {
       buttonHtml = `
-          <span class="status-text available-info">${item.startTime} - ${item.endTime} ${item.className}</span>
+          <span class="status-text available-info">${item.startTime} - ${item.endTime} ${item.className}</span><br>
+          <span class="remaining-class-number">👤 残り${item.remainingCapacity}席</span>
           <button class="class-select-button is-available-reserve" 
                   data-action="reserve" 
                   data-lesson-id="${item.lessonId}" 
                   data-date="${dateString}" 
                   data-time="${item.startTime}">
-              予約 (残席: ${item.remainingCapacity})
+              予約する
           </button>
       `;
       isAvailableClass = true;

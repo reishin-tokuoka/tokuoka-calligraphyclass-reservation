@@ -416,7 +416,7 @@ select:focus {
 #selectedDateText {
     color: #333;
     margin-bottom: 10px;
-    font-size: 1.1em;
+    font-size: 1.4em;
     margin-top: 0px;
 }
 
@@ -551,7 +551,7 @@ select:focus {
 /* ==================================== */
 /* 予約リスト全体のコンテナ */
 .time-slot-container {
-    padding: 10px 0;
+    padding: 0 0 10px 0;
     border-bottom: 1px solid #eee;
 }
 
@@ -560,7 +560,7 @@ select:focus {
     padding: 10px 15px;
     border: none;
     border-radius: 6px;
-    font-size: 0.95em;
+    font-size: 1em;
     font-weight: bold;
     cursor: pointer;
     transition: background-color 0.2s;
@@ -599,6 +599,11 @@ select:focus {
 
 /* 予約済み情報などの補助テキスト (今回はボタンに統合したため省略可能) */
 .status-text {
-    font-size: 0.9em;
+    font-size: 1.1em;
     white-space: wrap;
+    font-weight: bold;
+}
+.remaining-class-number {
+  font-size: 1.1em;
+  color: red;
 }
