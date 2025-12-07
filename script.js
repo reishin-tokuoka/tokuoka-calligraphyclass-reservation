@@ -387,7 +387,10 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
     for (let i = 0; i < startDayOfWeek; i++) {
         calendarHtml += '<div class="calendar-cell inactive"></div>';
     }
-
+    
+    const currentUser = getSessionUserInfo();
+    const upperLimit = currentUser.upperLimitNumber;
+  
     // ⭐ 日付セルを作成
     for (let day = 1; day <= lastDayOfMonth.getDate(); day++) {
         const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
@@ -418,15 +421,22 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
             // --- 授業あり（予約可能/満席の判定） ---
             const totalRemaining = dayCapacity.reduce((sum, item) => sum + item.remainingCapacity, 0);
 
-            if (totalRemaining > 0) {
-                // 空席あり：緑 (reservable clickable)
-                dayClass += ' available clickable';
-                capacityInfo = '予約可'; 
-                isReservable = true;
+            const reservedCount = myReservations.length;
+            const AttendedCount = myAttendedDates.filter(item => item.includes(monthKey)).length;
+            const userLimitReached = (reservedCount + AttendedCount) == upperLimit;
+
+            if (totalRemaining > 0 && !userLimitReached) {
+              // 空席あり：緑 (reservable clickable)
+              dayClass += ' available clickable';
+              capacityInfo = '予約可'; 
+              isReservable = true;
+            } else if (userLimitReached) {
+              dayClass += ' limit-reached';
+              capacityInfo = '予約不可';
             } else {
-                // 満席：赤 (fully-booked full)
-                dayClass += ' fully-booked full';
-                capacityInfo = '満席';
+              // 満席：赤 (fully-booked full)
+              dayClass += ' fully-booked full';
+              capacityInfo = '満席';
             }
             
             // --- 予約済みの判定 ---

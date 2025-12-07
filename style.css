@@ -397,8 +397,13 @@ select:focus {
 
 /* 満席の日 */
 .calendar-cell.full {
-    border-bottom: 3px solid #dc3545; /* 赤の線で満席を示す */
-    color: #dc3545;
+  border-bottom: 3px solid #dc3545; /* 赤の線で満席を示す */
+  color: #dc3545;
+}
+
+.calendar-cell.limit-reached {
+  border-bottom: 3px solid #dc3545; /* 赤の線で満席を示す */
+  color: #dc3545;
 }
 
 /* ==================================== */
