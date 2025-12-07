@@ -557,7 +557,8 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
                   data-action="reserve" 
                   data-lesson-id="${item.lessonId}" 
                   data-date="${dateString}" 
-                  data-time="${item.startTime}">
+                  data-time="${item.startTime}"
+                  data-display-time="${item.startTime} - ${item.endTime}">
               予約する
           </button>
       `;
@@ -589,13 +590,14 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
 function confirmReservation(buttonElement) {
   const lessonId = buttonElement.dataset.lessonId;
   const dateString = buttonElement.dataset.date;
-  const time = buttonElement.dataset.time;
+  const time = buttonElement.dataset.time; // 開始時間 HH:mm
+  const displayTime = buttonElement.dataset.displayTime // 開始時間 - 終了時間
   // セッションストレージからユーザ情報取得
   const currentUser = getSessionUserInfo();
   const classNameText = currentUser.className; //ユーザのクラス名を送信
   const userId = currentUser.userId; //ユーザIDを送信
 
-  const message = `${dateString} ${time} の ${classNameText} を予約します。よろしいですか？`;
+  const message = `${dateString} ${displayTime} の ${classNameText} を予約します。よろしいですか？`;
 
   showCustomModal(
       '予約の確定',
