@@ -606,6 +606,11 @@ select:focus {
 }
 .remaining-class-number {
   font-size: 1em;
+  color: #ffc107;
+  font-weight: bold;
+}
+.reserved-class {
+  font-size: 1em;
   color: red;
   font-weight: bold;
 }

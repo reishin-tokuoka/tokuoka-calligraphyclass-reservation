@@ -511,14 +511,14 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
     if (isReserved) {
       buttonHtml = `
             <span class="status-text reserved-info">${item.startTime} - ${item.endTime} ${item.className}</span><br>
-            <span class="remaining-class-number">✅ 予約済み</span>
+            <span class="reserved-class">✅ 予約済み</span>
             <button class="class-select-button is-reserved-cancel" 
                     data-action="cancel" 
                     data-date="${dateString}" 
-                    data-time="${item.startTime}">
+                    data-time="${item.startTime} - ${item.endTime}"
+                    data-reservation-id="${item.reservationId}">
                 キャンセルする
             </button>
-            
         `;
       isAvailableClass = true;
     // -----------------------------------------------------------------
@@ -532,7 +532,7 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
                   data-action="reserve" 
                   data-lesson-id="${item.lessonId}" 
                   data-date="${dateString}" 
-                  data-time="${item.startTime}">
+                  data-time="${item.startTime} - ${item.endTime}">
               予約する
           </button>
       `;
@@ -540,9 +540,8 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
     } else {
       let reason = isFull ? '満席' : '上限到達';
          buttonHtml = `
-            <div class="class-select-button is-unavailable">
-                ${item.startTime} - ${item.endTime} - ${item.className} (${reason}のため予約不可)
-            </div>
+            <span class="class-select-button is-unavailable">${item.startTime} - ${item.endTime} - ${item.className}</span><br>
+            <span class="unavailable-reason">※${reason}のため予約不可</span>
          `;
     }
 
@@ -550,15 +549,19 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
   });
   
   if (!isAvailableClass) {
-      availableClassesList.innerHTML = '<p>この日は予約可能なクラスがありません。</p>';
+      availableClassesList.innerHTML = '<p>予約可能な授業がありません。</p>';
       return;
   }
 
   availableClassesList.innerHTML = listHtml;
   
   // 予約ボタンのリスナー設定
-  document.querySelectorAll('.class-select-button').forEach(button => {
+  document.querySelectorAll('.is-available-reserve').forEach(button => {
       button.addEventListener('click', (event) => confirmReservation(event.currentTarget));
+  });
+  // キャンセルボタンのリスナー設定
+  document.querySelectorAll('.is-reserved-cancel').forEach(button => {
+    button.addEventListener('click', (event) => confirmReservationCancel(event.currentTarget));
   });
 }
 
@@ -625,36 +628,49 @@ async function handleReservation(lessonId, dateString, time, classNameText, user
 // ------------------------------
 // キャンセル処理（カスタムモーダル）
 // ------------------------------
-const handleCancel = (id, message) => {
-    showCustomModal(
-        '予約のキャンセル',
-        message,
-        async () => {
-            await executeCancellation(id);
-        }
-    );
-};
+function confirmReservationCancel(buttonElement) {
+  const dateString = buttonElement.dataset.date;
+  const time = buttonElement.dataset.time;
+  const reservationId = buttonElement.dataset.reservationId;
+  // セッションストレージからユーザ情報取得
+  const currentUser = getSessionUserInfo();
+  const classNameText = currentUser.className; //ユーザのクラス名を送信
+
+  const message = `${dateString} ${time} の ${classNameText} をキャンセルします。よろしいですか？`;
+
+  showCustomModal(
+      '予約のキャンセル',
+      message,
+      async () => {
+          await executeCancellation(reservationId);
+      }
+  );
+}
 
 // ------------------------------
 // GASへのキャンセルAPIコール
 // ------------------------------
 async function executeCancellation(reservationId) {
-    const payload = { mode: "cancelReservation", userId: userId, reservationId: reservationId };
-    const formBody = new URLSearchParams(payload);
+  const payload = { mode: "cancelReservation", userId: userId, reservationId: reservationId };
+  const formBody = new URLSearchParams(payload);
 
-    try {
-        const res = await fetch(GAS_BASE_URL, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: formBody });
-        const json = await res.json();
-        
-        if (json.success) {
-            alert("キャンセルが完了しました。");
-        } else {
-            alert("キャンセルに失敗しました: " + json.message);
-        }
-    } catch (e) {
-        alert("通信エラーが発生しました");
-        console.error("キャンセル通信エラー:", e);
-    }
+  try {
+      const res = await fetch(GAS_BASE_URL, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: formBody });
+      const json = await res.json();
+      
+      if (json.success) {
+        alert("キャンセルが完了しました。");
+        // 選択エリアは非表示にする
+        selectionDetails.classList.add('hidden');
+        // 予約成功後、カレンダーを再描画して残席情報を更新
+        fetchAndRenderCapacity(CURRENT_SCREEN_DATE);
+      } else {
+          alert("キャンセルに失敗しました: " + json.message);
+      }
+  } catch (e) {
+      alert("通信エラーが発生しました");
+      console.error("キャンセル通信エラー:", e);
+  }
 }
 
 // ------------------------------
@@ -667,37 +683,6 @@ const showCustomModal = (title, message, onConfirm) => {
     currentConfirmCallback = onConfirm; 
     customModal.classList.remove('hidden');
 };
-
-const hideCustomModal = () => {
-    customModal.classList.add('hidden');
-    currentConfirmCallback = null;
-};
-
-// ====================================
-// カスタムモーダル イベントリスナー設定
-// ====================================
-function setupModalListeners() {
-    // 承認ボタンの処理
-    modalConfirmBtn.addEventListener('click', async () => {
-        if (currentConfirmCallback) {
-            modalConfirmBtn.disabled = true;
-
-            try {
-                await currentConfirmCallback();
-            } catch (error) {
-                console.error("Confirm callback failed:", error);
-            } finally {
-                modalConfirmBtn.disabled = false;
-            }
-        }
-        hideCustomModal();
-    });
-
-    // キャンセルボタンの処理
-    modalCancelBtn.addEventListener('click', () => {
-        hideCustomModal();
-    });
-}
 
 // ==========================================
 // セッションストレージに設定したユーザ情報を取得
