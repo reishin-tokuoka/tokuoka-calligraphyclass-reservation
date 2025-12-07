@@ -8,7 +8,7 @@ const GAS_BASE_URL = "https://script.google.com/macros/s/AKfycbxQPiNqa3uHpnkrCiw
 
 // 予約画面用
 let AVAILABLE_CAPACITY_DATA = {}; // { 'YYYY-MM-DD': [{ startTime: 'HH:mm', className: '...', remainingCapacity: N }, ...] }
-let MY_RESERVIONS = [];
+let MY_RESERVIONS = {};
 let MY_ATTEDED_DATES = [];
 let CURRENT_SCREEN_DATE = new Date(); // 予約画面のカレンダー表示月
 const MAX_RESERVABLE_MONTHS = 1; // (今月、来月)
@@ -339,7 +339,7 @@ async function fetchAndRenderCapacity(date) {
         myAttendedDates = json.myAttendedDates || [];
 
         AVAILABLE_CAPACITY_DATA[monthKey] = capacityData; // 残席情報のみメモリに保存
-        MY_RESERVIONS = myReservations;
+        MY_RESERVIONS[monthKey] = myReservations;
         MY_ATTEDED_DATES = myAttendedDates;
       } else {
           console.error("カレンダー情報の取得に失敗しました", json.message);
@@ -471,17 +471,17 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
 // 日付がクリックされたときの処理
 // ------------------------------
 function selectDate(dateString) {
-    selectedDateText.textContent = `📅 ${dateString} 授業一覧`;
-    selectionDetails.classList.remove('hidden');
-    
-    // 該当日の残席情報を AVAILABLE_CAPACITY_DATA から取得し、リストを描画
-    const monthKey = `${CURRENT_SCREEN_DATE.getFullYear()}-${String(CURRENT_SCREEN_DATE.getMonth() + 1).padStart(2, '0')}`;
-    const monthCapacity = AVAILABLE_CAPACITY_DATA[monthKey] || {};
-    const dayCapacity = monthCapacity[dateString] || [];
+  selectedDateText.textContent = `📅 ${dateString} 授業一覧`;
+  selectionDetails.classList.remove('hidden');
+  
+  // 該当日の残席情報を AVAILABLE_CAPACITY_DATA から取得し、リストを描画
+  const monthKey = `${CURRENT_SCREEN_DATE.getFullYear()}-${String(CURRENT_SCREEN_DATE.getMonth() + 1).padStart(2, '0')}`;
+  const monthCapacity = AVAILABLE_CAPACITY_DATA[monthKey] || {};
+  const dayCapacity = monthCapacity[dateString] || [];
 
-    // dateString を渡してボタンのデータ属性に持たせる
-    renderAvailableClassesList(dayCapacity, dateString, monthKey);
-    // renderAvailableClassesList(dayCapacity.filter(item => item.remainingCapacity > 0), dateString); 
+  // dateString を渡してボタンのデータ属性に持たせる
+  renderAvailableClassesList(dayCapacity, dateString, monthKey);
+  // renderAvailableClassesList(dayCapacity.filter(item => item.remainingCapacity > 0), dateString); 
 }
 
 // ------------------------------
@@ -495,13 +495,14 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
   let listHtml = '';
 
   let isAvailableClass = false;
-  const reservedCount = MY_RESERVIONS.filter(item => item.includes(monthKey)).length;
+  const monthReservation = MY_RESERVIONS[monthKey] || {};
+  const reservedCount = monthReservation.length;
   const AttendedCount = MY_ATTEDED_DATES.filter(item => item.includes(monthKey)).length;
   const userLimitReached = (reservedCount + AttendedCount) == upperLimit;
 
   classes.forEach(item => {
     // MY_RESERVIONSから取得して、予約済み時間を特定
-    const isReserved = MY_RESERVIONS.includes(`${dateString} ${item.startTime}`);
+    const isReserved = monthReservation[`${dateString} ${item.startTime}`].startTime === item.startTime;
     const isFull = item.remainingCapacity <= 0;
     let buttonHtml = '';
 
