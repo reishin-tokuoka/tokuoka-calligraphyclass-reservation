@@ -516,17 +516,28 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
     // A. 自分が予約済みの場合: キャンセルボタンを表示
     // -----------------------------------------------------------------
     if (isReserved) {
-      buttonHtml = `
-            <span class="status-text reserved-info">${item.startTime} - ${item.endTime} ${item.className}</span><br>
-            <span class="reserved-class">✅ 予約済み</span>
-            <button class="class-select-button is-reserved-cancel" 
-                    data-action="cancel" 
-                    data-date="${dateString}" 
-                    data-time="${item.startTime} - ${item.endTime}"
-                    data-reservation-id="${reservation[`${dateString} ${item.startTime}`].reservationId}">
-                キャンセルする
-            </button>
-        `;
+      const reservationId = reservation[`${dateString} ${item.startTime}`].reservationId;
+      const cancellableUntil = reservation[`${dateString} ${item.startTime}`].cancellableUntil;
+      const now = new Date();
+      const cancellableUntilDate = new Date(cancellableUntil);
+      if (cancellableUntilDate > now) {
+        buttonHtml = `
+              <span class="status-text reserved-info">${item.startTime} - ${item.endTime} ${item.className}</span><br>
+              <span class="reserved-class">✅ 予約済み(キャンセル期限:${cancellableUntil})</span>
+              <button class="class-select-button is-reserved-cancel" 
+                      data-action="cancel" 
+                      data-date="${dateString}" 
+                      data-time="${item.startTime} - ${item.endTime}"
+                      data-reservation-id="${reservationId}">
+                  キャンセルする
+              </button>
+          `;
+      } else {
+        buttonHtml = `
+            <span class="status-text is-unavailable">${item.startTime} - ${item.endTime} ${item.className}</span><br>
+            <span class="unavailable-reason">※キャンセル期限切れのためキャンセル不可</span>
+          `;        
+      }
       isAvailableClass = true;
     // -----------------------------------------------------------------
     // B. 予約可能で、満席でも上限でもない場合: 予約ボタンを表示
