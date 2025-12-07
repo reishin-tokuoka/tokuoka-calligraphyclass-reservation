@@ -422,7 +422,7 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
             const totalRemaining = dayCapacity.reduce((sum, item) => sum + item.remainingCapacity, 0);
 
             const reservedCount = myReservations.length;
-            const AttendedCount = myAttendedDates.filter(item => item.includes(monthKey)).length;
+            const AttendedCount = myAttendedDates.filter(item => item.includes(dateString)).length;
             const userLimitReached = (reservedCount + AttendedCount) == upperLimit;
 
             if (totalRemaining > 0 && !userLimitReached) {
