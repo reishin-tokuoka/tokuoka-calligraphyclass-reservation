@@ -684,6 +684,37 @@ const showCustomModal = (title, message, onConfirm) => {
     customModal.classList.remove('hidden');
 };
 
+const hideCustomModal = () => {
+    customModal.classList.add('hidden');
+    currentConfirmCallback = null;
+};
+
+// ====================================
+// カスタムモーダル イベントリスナー設定
+// ====================================
+function setupModalListeners() {
+    // 承認ボタンの処理
+    modalConfirmBtn.addEventListener('click', async () => {
+        if (currentConfirmCallback) {
+            modalConfirmBtn.disabled = true;
+
+            try {
+                await currentConfirmCallback();
+            } catch (error) {
+                console.error("Confirm callback failed:", error);
+            } finally {
+                modalConfirmBtn.disabled = false;
+            }
+        }
+        hideCustomModal();
+    });
+
+    // キャンセルボタンの処理
+    modalCancelBtn.addEventListener('click', () => {
+        hideCustomModal();
+    });
+}
+
 // ==========================================
 // セッションストレージに設定したユーザ情報を取得
 // ==========================================
