@@ -510,8 +510,8 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
     // -----------------------------------------------------------------
     if (isReserved) {
       buttonHtml = `
-            <span class="status-text reserved-info">${item.startTime} - ${item.endTime} ${item.className}</span>
-            <span class="remaining-class-number">予約済み</span>
+            <span class="status-text reserved-info">${item.startTime} - ${item.endTime} ${item.className}</span><br>
+            <span class="remaining-class-number">✅ 予約済み</span>
             <button class="class-select-button is-reserved-cancel" 
                     data-action="cancel" 
                     data-date="${dateString}" 

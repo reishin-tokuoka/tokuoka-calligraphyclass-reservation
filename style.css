@@ -416,8 +416,9 @@ select:focus {
 #selectedDateText {
     color: #333;
     margin-bottom: 10px;
-    font-size: 1.4em;
+    font-size: 1.3em;
     margin-top: 0px;
+    border-bottom: 1px solid #eee;
 }
 
 #availableClassesList {
@@ -599,11 +600,12 @@ select:focus {
 
 /* 予約済み情報などの補助テキスト (今回はボタンに統合したため省略可能) */
 .status-text {
-    font-size: 1.1em;
+    font-size: 1em;
     white-space: wrap;
     font-weight: bold;
 }
 .remaining-class-number {
-  font-size: 1.1em;
+  font-size: 1em;
   color: red;
+  font-weight: bold;
 }
