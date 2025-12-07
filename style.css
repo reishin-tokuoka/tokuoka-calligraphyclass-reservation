@@ -550,9 +550,6 @@ select:focus {
 /* ==================================== */
 /* 予約リスト全体のコンテナ */
 .time-slot-container {
-    display: flex;
-    justify-content: space-between; /* 要素を左右に配置 */
-    align-items: center;
     padding: 10px 0;
     border-bottom: 1px solid #eee;
 }

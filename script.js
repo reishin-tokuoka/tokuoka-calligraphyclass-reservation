@@ -471,7 +471,7 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
 // 日付がクリックされたときの処理
 // ------------------------------
 function selectDate(dateString) {
-    selectedDateText.textContent = `📅 ${dateString} の授業一覧`;
+    selectedDateText.textContent = `📅 ${dateString} 授業一覧`;
     selectionDetails.classList.remove('hidden');
     
     // 該当日の残席情報を AVAILABLE_CAPACITY_DATA から取得し、リストを描画
@@ -510,13 +510,14 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
     // -----------------------------------------------------------------
     if (isReserved) {
       buttonHtml = `
+            <span class="status-text reserved-info">${item.startTime} - ${item.endTime} ${item.className} (予約済み)</span>
             <button class="class-select-button is-reserved-cancel" 
                     data-action="cancel" 
                     data-date="${dateString}" 
                     data-time="${item.startTime}">
-                キャンセルする
+                キャンセル
             </button>
-            <span class="status-text reserved-info">${item.startTime} - ${item.endTime} ${item.className} (予約済み)</span>
+            
         `;
       isAvailableClass = true;
     // -----------------------------------------------------------------
@@ -524,14 +525,14 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
     // -----------------------------------------------------------------
     } else if (!isFull && !userLimitReached) {
       buttonHtml = `
+          <span class="status-text available-info">${item.startTime} - ${item.endTime} ${item.className}</span>
           <button class="class-select-button is-available-reserve" 
                   data-action="reserve" 
                   data-lesson-id="${item.lessonId}" 
                   data-date="${dateString}" 
                   data-time="${item.startTime}">
-              予約する (残席: ${item.remainingCapacity})
+              予約 (残席: ${item.remainingCapacity})
           </button>
-          <span class="status-text available-info">${item.startTime} - ${item.endTime} ${item.className}</span>
       `;
       isAvailableClass = true;
     } else {
