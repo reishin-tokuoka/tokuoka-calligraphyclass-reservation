@@ -518,6 +518,34 @@ select:focus {
 }
 
 /* ==================================== */
+/* 既存のクラスの再確認 (色の役割) */
+/* ==================================== */
+
+/* 空席あり：緑 */
+.calendar-cell.available {
+    cursor: pointer;
+    border-bottom: 2px solid #28a745; /* 緑の線 */
+}
+
+/* 満席：赤 */
+.calendar-cell.full {
+    border-bottom: 2px solid #dc3545; /* 赤の線 */
+    color: #333; /* 文字色は黒を維持（見やすさのため）*/
+}
+
+/* 予約枠を示すインジケーター（残席数や「満席」の文字） */
+.capacity-indicator {
+    /* ... 既存のスタイル ... */
+    font-weight: bold;
+    /* 満席の場合は文字色を赤にする */
+    color: #28a745; /* デフォルトは緑 */
+}
+
+.calendar-cell.full .capacity-indicator {
+    color: #dc3545; /* 満席の日は赤 */
+}
+
+/* ==================================== */
 /* 予約リスト
 /* ==================================== */
 /* 予約リスト全体のコンテナ */
@@ -530,7 +558,7 @@ select:focus {
 }
 
 /* アクションボタンの共通スタイル */
-.action-button {
+.class-select-button {
     padding: 10px 15px;
     border: none;
     border-radius: 6px;
@@ -543,28 +571,35 @@ select:focus {
 }
 
 /* 🟢 予約可能時: 「予約する」ボタン */
-.action-button.is-available-reserve {
+.class-select-button.is-available-reserve {
     background-color: #28a745; /* 緑色 */
     color: #ffffff;
 }
 
-.action-button.is-available-reserve:hover {
+.class-select-button.is-available-reserve:hover {
     background-color: #1e7e34;
 }
 
 /* 🟠 予約済み時: 「キャンセルする」ボタン */
-.action-button.is-reserved-cancel {
+.class-select-button.is-reserved-cancel {
     background-color: #ffc107; /* 警告色のオレンジ */
     color: #333;
 }
 
-.action-button.is-reserved-cancel:hover {
+.class-select-button.is-reserved-cancel:hover {
     background-color: #e0a800;
 }
 
 /* 🛑 予約不可時: 「満席/上限到達」表示 */
-.action-button.is-unavailable {
+.class-select-button.is-unavailable {
     background-color: #f8f9fa; /* 薄いグレー */
     color: #6c757d;
     cursor: default;
+}
+
+/* 予約済み情報などの補助テキスト (今回はボタンに統合したため省略可能) */
+.status-text {
+    font-size: 0.9em;
+    padding-left: 10px;
+    white-space: nowrap;
 }
