@@ -417,6 +417,7 @@ select:focus {
     color: #333;
     margin-bottom: 10px;
     font-size: 1.1em;
+    margin-top: 0px;
 }
 
 #availableClassesList {
@@ -565,6 +566,8 @@ select:focus {
     transition: background-color 0.2s;
     text-align: center;
     flex-grow: 1; /* ボタンがスペースを占有 */
+    width: 100%;
+    margin-top: 3px;
 }
 
 /* 🟢 予約可能時: 「予約する」ボタン */
@@ -597,6 +600,5 @@ select:focus {
 /* 予約済み情報などの補助テキスト (今回はボタンに統合したため省略可能) */
 .status-text {
     font-size: 0.9em;
-    padding-left: 10px;
-    white-space: nowrap;
+    white-space: wrap;
 }
