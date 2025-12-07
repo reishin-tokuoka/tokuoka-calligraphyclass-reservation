@@ -608,12 +608,12 @@ select:focus {
     font-weight: bold;
 }
 .remaining-class-number {
-  font-size: 0.95em;
+  font-size: 0.85em;
   color: #007bff;
   font-weight: bold;
 }
 .reserved-class {
-  font-size: 1em;
+  font-size: 0.85em;
   color: red;
   font-weight: bold;
 }
