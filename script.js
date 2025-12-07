@@ -505,8 +505,10 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
 
   classes.forEach(item => {
     // MY_RESERVIONSから取得して、予約済み時間を特定
-    const reservationDate = monthReservation[`${dateString} ${item.startTime}`];
-    const isReserved = reservationDate != null ? true : false;
+    const isReserved = monthReservation.some(dateTimeObj => {
+      const keys = Object.keys(dateTimeObj);
+      return keys.some(key => key.includes(`${dateString} ${item.startTime}`));
+    });
     const isFull = item.remainingCapacity <= 0;
     let buttonHtml = '';
 
