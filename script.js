@@ -488,16 +488,16 @@ function selectDate(dateString) {
 // 予約可能クラスのリストを描画
 // ------------------------------
 function renderAvailableClassesList(classes, dateString, monthKey) {
+  // セッションストレージからユーザ情報取得
+  const currentUser = getSessionUserInfo();
+  const upperLimit = currentUser.upperLimit;
+
   let listHtml = '';
 
   let isAvailableClass = false;
   const reservedCount = MY_RESERVIONS.filter(item => item.includes(monthKey)).length;
   const AttendedCount = MY_ATTEDED_DATES.filter(item => item.includes(monthKey)).length;
   const userLimitReached = (reservedCount + AttendedCount) == upperLimit;
-
-  // セッションストレージからユーザ情報取得
-  const currentUser = getSessionUserInfo();
-  const upperLimit = currentUser.upperLimit;
 
   classes.forEach(item => {
     // MY_RESERVIONSから取得して、予約済み時間を特定
@@ -542,7 +542,7 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
             </div>
          `;
     }
-    
+
     listHtml += `<div class="time-slot-container">${buttonHtml}</div>`;
   });
   
