@@ -476,7 +476,7 @@ select:focus {
     position: absolute;
     top: 3px;
     left: 3px;
-    background-color: #6c757d; /* グレー */
+    background-color: rgb(39, 211, 16); /* グレー */
     color: white;
     font-size: 8px;
     padding: 1px 4px;
