@@ -471,7 +471,7 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
 // 日付がクリックされたときの処理
 // ------------------------------
 function selectDate(dateString) {
-    selectedDateText.textContent = `📅 ${dateString} の予約可能なクラス`;
+    selectedDateText.textContent = `📅 ${dateString} の授業一覧`;
     selectionDetails.classList.remove('hidden');
     
     // 該当日の残席情報を AVAILABLE_CAPACITY_DATA から取得し、リストを描画
@@ -489,26 +489,28 @@ function selectDate(dateString) {
 // ------------------------------
 function renderAvailableClassesList(classes, dateString, monthKey) {
   let listHtml = '';
+
   let isAvailableClass = false;
+  const reservedCount = MY_RESERVIONS.filter(item => item.includes(monthKey)).length;
+  const AttendedCount = MY_ATTEDED_DATES.filter(item => item.includes(monthKey)).length;
+  const userLimitReached = (reservedCount + AttendedCount) == upperLimit;
+
   // セッションストレージからユーザ情報取得
   const currentUser = getSessionUserInfo();
   const upperLimit = currentUser.upperLimit;
-  // if (classes.length === 0) {
-  //     availableClassesList.innerHTML = '<p>この日は予約可能なクラスがありません。</p>';
-  //     return;
-  // }
+
   classes.forEach(item => {
     // MY_RESERVIONSから取得して、予約済み時間を特定
     const isReserved = MY_RESERVIONS.includes(`${dateString} ${item.startTime}`);
     const isFull = item.remainingCapacity <= 0;
-    const userLimitReached = MY_RESERVIONS.filter(item => item.includes(monthKey)).length == upperLimit; 
+    const buttonHtml = '';
 
     // -----------------------------------------------------------------
     // A. 自分が予約済みの場合: キャンセルボタンを表示
     // -----------------------------------------------------------------
     if (isReserved) {
-      listHtml += `
-            <button class="action-button is-reserved-cancel" 
+      buttonHtml = `
+            <button class="class-select-button is-reserved-cancel" 
                     data-action="cancel" 
                     data-date="${dateString}" 
                     data-time="${item.startTime}">
@@ -516,12 +518,13 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
             </button>
             <span class="status-text reserved-info">${item.startTime} - ${item.endTime} ${item.className} (予約済み)</span>
         `;
+      isAvailableClass = true;
     // -----------------------------------------------------------------
     // B. 予約可能で、満席でも上限でもない場合: 予約ボタンを表示
     // -----------------------------------------------------------------
     } else if (!isFull && !userLimitReached) {
-      listHtml += `
-          <button class="action-button is-available-reserve" 
+      buttonHtml = `
+          <button class="class-select-button is-available-reserve" 
                   data-action="reserve" 
                   data-lesson-id="${item.lessonId}" 
                   data-date="${dateString}" 
@@ -530,24 +533,24 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
           </button>
           <span class="status-text available-info">${item.startTime} - ${item.endTime} ${item.className}</span>
       `;
+      isAvailableClass = true;
     } else {
       let reason = isFull ? '満席' : '上限到達';
-         listHtml += `
-            <div class="action-button is-unavailable">
+         buttonHtml = `
+            <div class="class-select-button is-unavailable">
                 ${item.startTime} - ${item.endTime} - ${item.className} (${reason}のため予約不可)
             </div>
          `;
     }
-    // listHtml += `
-    //     <button class="class-select-button" 
-    //             data-lesson-id="${item.lessonId}" 
-    //             data-date="${dateString}" 
-    //             data-time="${item.startTime}">
-    //         ${item.startTime} - ${item.className} (残席: ${item.remainingCapacity})
-    //     </button>
-    // `;
-  });
     
+    listHtml += `<div class="time-slot-container">${buttonHtml}</div>`;
+  });
+  
+  if (!isAvailableClass) {
+      availableClassesList.innerHTML = '<p>この日は予約可能なクラスがありません。</p>';
+      return;
+  }
+
   availableClassesList.innerHTML = listHtml;
   
   // 予約ボタンのリスナー設定
