@@ -8,6 +8,8 @@ const GAS_BASE_URL = "https://script.google.com/macros/s/AKfycbxQPiNqa3uHpnkrCiw
 
 // 予約画面用
 let AVAILABLE_CAPACITY_DATA = {}; // { 'YYYY-MM-DD': [{ startTime: 'HH:mm', className: '...', remainingCapacity: N }, ...] }
+let MY_RESERVIONS = [];
+let MY_ATTEDED_DATES = [];
 let CURRENT_SCREEN_DATE = new Date(); // 予約画面のカレンダー表示月
 const MAX_RESERVABLE_MONTHS = 1; // (今月、来月)
 
@@ -313,33 +315,35 @@ async function fetchAndRenderCapacity(date) {
 
     // 2. GASから統合されたカレンダー情報を取得する
     try {
-        const payload = { 
-            mode: "getCalendarData",
-            year: date.getFullYear(), 
-            month: date.getMonth() + 1,
-            monthKey: monthKey,
-            userId: currentUser.userId
-        }; 
-        const formBody = new URLSearchParams(payload);
-        
-        const res = await fetch(GAS_BASE_URL, {
-            method: "POST", 
-            headers: { "Content-Type": "application/x-www-form-urlencoded" }, 
-            body: formBody
-        });
-        
-        const json = await res.json();
-        
-        if (json.success) {
-            // 💡 統合されたレスポンスから両方のデータを取得
-            capacityData = json.capacityData || {};
-            myReservations = json.myReservedDates || [];
-            myAttendedDates = json.myAttendedDates || [];
+      const payload = { 
+          mode: "getCalendarData",
+          year: date.getFullYear(), 
+          month: date.getMonth() + 1,
+          monthKey: monthKey,
+          userId: currentUser.userId
+      }; 
+      const formBody = new URLSearchParams(payload);
+      
+      const res = await fetch(GAS_BASE_URL, {
+          method: "POST", 
+          headers: { "Content-Type": "application/x-www-form-urlencoded" }, 
+          body: formBody
+      });
+      
+      const json = await res.json();
+      
+      if (json.success) {
+        // 💡 統合されたレスポンスから両方のデータを取得
+        capacityData = json.capacityData || {};
+        myReservations = json.myReservedDates || [];
+        myAttendedDates = json.myAttendedDates || [];
 
-            AVAILABLE_CAPACITY_DATA[monthKey] = capacityData; // 残席情報のみメモリに保存
-        } else {
-            console.error("カレンダー情報の取得に失敗しました", json.message);
-        }
+        AVAILABLE_CAPACITY_DATA[monthKey] = capacityData; // 残席情報のみメモリに保存
+        MY_RESERVIONS = myReservations;
+        MY_ATTEDED_DATES = myAttendedDates;
+      } else {
+          console.error("カレンダー情報の取得に失敗しました", json.message);
+      }
     } catch (e) {
         console.error("カレンダー情報取得時の通信エラー", e);
     }
@@ -476,59 +480,103 @@ function selectDate(dateString) {
     const dayCapacity = monthCapacity[dateString] || [];
 
     // dateString を渡してボタンのデータ属性に持たせる
-    renderAvailableClassesList(dayCapacity.filter(item => item.remainingCapacity > 0), dateString); 
+    renderAvailableClassesList(dayCapacity, dateString, monthKey);
+    // renderAvailableClassesList(dayCapacity.filter(item => item.remainingCapacity > 0), dateString); 
 }
 
 // ------------------------------
 // 予約可能クラスのリストを描画
 // ------------------------------
-function renderAvailableClassesList(classes, dateString) {
-    let listHtml = '';
-    
-    if (classes.length === 0) {
-        availableClassesList.innerHTML = '<p>この日は予約可能なクラスがありません。</p>';
-        return;
-    }
+function renderAvailableClassesList(classes, dateString, monthKey) {
+  let listHtml = '';
+  let isAvailableClass = false;
+  // セッションストレージからユーザ情報取得
+  const currentUser = getSessionUserInfo();
+  const upperLimit = currentUser.upperLimit;
+  // if (classes.length === 0) {
+  //     availableClassesList.innerHTML = '<p>この日は予約可能なクラスがありません。</p>';
+  //     return;
+  // }
+  classes.forEach(item => {
+    // MY_RESERVIONSから取得して、予約済み時間を特定
+    const isReserved = MY_RESERVIONS.includes(`${dateString} ${item.startTime}`);
+    const isFull = item.remainingCapacity <= 0;
+    const userLimitReached = MY_RESERVIONS.filter(item => item.includes(monthKey)).length == upperLimit; 
 
-    classes.forEach(item => {
-        listHtml += `
-            <button class="class-select-button" 
-                    data-lesson-id="${item.lessonId}" 
+    // -----------------------------------------------------------------
+    // A. 自分が予約済みの場合: キャンセルボタンを表示
+    // -----------------------------------------------------------------
+    if (isReserved) {
+      listHtml += `
+            <button class="action-button is-reserved-cancel" 
+                    data-action="cancel" 
                     data-date="${dateString}" 
                     data-time="${item.startTime}">
-                ${item.startTime} - ${item.className} (残席: ${item.remainingCapacity})
+                キャンセルする
             </button>
+            <span class="status-text reserved-info">${item.startTime} - ${item.endTime} ${item.className} (予約済み)</span>
         `;
-    });
+    // -----------------------------------------------------------------
+    // B. 予約可能で、満席でも上限でもない場合: 予約ボタンを表示
+    // -----------------------------------------------------------------
+    } else if (!isFull && !userLimitReached) {
+      listHtml += `
+          <button class="action-button is-available-reserve" 
+                  data-action="reserve" 
+                  data-lesson-id="${item.lessonId}" 
+                  data-date="${dateString}" 
+                  data-time="${item.startTime}">
+              予約する (残席: ${item.remainingCapacity})
+          </button>
+          <span class="status-text available-info">${item.startTime} - ${item.endTime} ${item.className}</span>
+      `;
+    } else {
+      let reason = isFull ? '満席' : '上限到達';
+         listHtml += `
+            <div class="action-button is-unavailable">
+                ${item.startTime} - ${item.endTime} - ${item.className} (${reason}のため予約不可)
+            </div>
+         `;
+    }
+    // listHtml += `
+    //     <button class="class-select-button" 
+    //             data-lesson-id="${item.lessonId}" 
+    //             data-date="${dateString}" 
+    //             data-time="${item.startTime}">
+    //         ${item.startTime} - ${item.className} (残席: ${item.remainingCapacity})
+    //     </button>
+    // `;
+  });
     
-    availableClassesList.innerHTML = listHtml;
-    
-    // 予約ボタンのリスナー設定
-    document.querySelectorAll('.class-select-button').forEach(button => {
-        button.addEventListener('click', (event) => confirmReservation(event.currentTarget));
-    });
+  availableClassesList.innerHTML = listHtml;
+  
+  // 予約ボタンのリスナー設定
+  document.querySelectorAll('.class-select-button').forEach(button => {
+      button.addEventListener('click', (event) => confirmReservation(event.currentTarget));
+  });
 }
 
 // ------------------------------
 // 予約確認モーダル表示
 // ------------------------------
 function confirmReservation(buttonElement) {
-    const lessonId = buttonElement.dataset.lessonId;
-    const dateString = buttonElement.dataset.date;
-    const time = buttonElement.dataset.time;
-    const classNameText = userClassName //ユーザのクラス名を送信
-    // セッションストレージからユーザ情報取得
-    const currentUser = getSessionUserInfo();
+  const lessonId = buttonElement.dataset.lessonId;
+  const dateString = buttonElement.dataset.date;
+  const time = buttonElement.dataset.time;
+  // セッションストレージからユーザ情報取得
+  const currentUser = getSessionUserInfo();
+  const classNameText = currentUser.className; //ユーザのクラス名を送信
+  const userId = currentUser.userId; //ユーザIDを送信
 
-    const message = `${dateString} ${time} の ${classNameText} を予約します。よろしいですか？`;
+  const message = `${dateString} ${time} の ${classNameText} を予約します。よろしいですか？`;
 
-    showCustomModal(
-        '予約の確定',
-        message,
-        async () => {
-            await handleReservation(lessonId, dateString, time, classNameText, currentUser.userId);
-        }
-    );
+  showCustomModal(
+      '予約の確定',
+      message,
+      async () => {
+          await handleReservation(lessonId, dateString, time, classNameText, userId);
+      }
+  );
 }
 
 // ------------------------------
