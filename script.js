@@ -497,7 +497,6 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
 
   let listHtml = '';
 
-  let isAvailableClass = false;
   const monthReservation = MY_RESERVIONS[monthKey] || {};
   const reservedCount = monthReservation.length;
   const AttendedCount = MY_ATTEDED_DATES.filter(item => item.includes(monthKey)).length;
@@ -538,7 +537,6 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
             <span class="unavailable-reason">※キャンセル期限切れのためキャンセル不可</span>
           `;        
       }
-      isAvailableClass = true;
     // -----------------------------------------------------------------
     // B. 予約可能で、満席でも上限でもない場合: 予約ボタンを表示
     // -----------------------------------------------------------------
@@ -554,7 +552,6 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
               予約する
           </button>
       `;
-      isAvailableClass = true;
     } else {
       let reason = isFull ? '満席' : '上限到達';
          buttonHtml = `
@@ -565,12 +562,6 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
 
     listHtml += `<div class="time-slot-container">${buttonHtml}</div>`;
   });
-  
-  if (!isAvailableClass) {
-      availableClassesList.innerHTML = '<p>予約可能な授業がありません。</p>';
-      return;
-  }
-
   availableClassesList.innerHTML = listHtml;
   
   // 予約ボタンのリスナー設定
