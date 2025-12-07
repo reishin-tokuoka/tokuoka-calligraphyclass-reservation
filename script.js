@@ -540,7 +540,7 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
     } else {
       let reason = isFull ? '満席' : '上限到達';
          buttonHtml = `
-            <span class="class-select-button is-unavailable">${item.startTime} - ${item.endTime} - ${item.className}</span><br>
+            <span class="status-text is-unavailable">${item.startTime} - ${item.endTime} ${item.className}</span><br>
             <span class="unavailable-reason">※${reason}のため予約不可</span>
          `;
     }

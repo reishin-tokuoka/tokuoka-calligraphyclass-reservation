@@ -272,8 +272,8 @@ select:focus {
 }
 
 #reservationArea h2 {
-    color: #007bff; /* メインカラー */
-    border-bottom: 2px solid #007bff;
+    color: #333; /* メインカラー */
+    border-bottom: 2px solid #333;
     padding-bottom: 5px;
     margin-bottom: 20px;
 }
@@ -592,10 +592,12 @@ select:focus {
 }
 
 /* 🛑 予約不可時: 「満席/上限到達」表示 */
-.class-select-button.is-unavailable {
-    background-color: #f8f9fa; /* 薄いグレー */
+.status-text.is-unavailable {
     color: #6c757d;
     cursor: default;
+}
+.unavailable-reason {
+  color: red;
 }
 
 /* 予約済み情報などの補助テキスト (今回はボタンに統合したため省略可能) */
@@ -606,7 +608,7 @@ select:focus {
 }
 .remaining-class-number {
   font-size: 1em;
-  color: #ffc107;
+  color: #007bff;
   font-weight: bold;
 }
 .reserved-class {
