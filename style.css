@@ -402,7 +402,7 @@ select:focus {
 }
 
 .calendar-cell.limit-reached {
-  border-bottom: 3px solid #dc3545; /* 赤の線で満席を示す */
+  border-bottom: 3px solid #dc3545; /* 赤の線で予約不可を示す */
   color: #dc3545;
 }
 
@@ -540,6 +540,11 @@ select:focus {
     color: #333; /* 文字色は黒を維持（見やすさのため）*/
 }
 
+.calendar-cell.limit-reached {
+  border-bottom: 2px solid #dc3545; /* 赤の線で予約不可を示す */
+  color: #333; /* 文字色は黒を維持（見やすさのため）*/
+}
+
 /* 予約枠を示すインジケーター（残席数や「満席」の文字） */
 .capacity-indicator {
     /* ... 既存のスタイル ... */
@@ -550,6 +555,10 @@ select:focus {
 
 .calendar-cell.full .capacity-indicator {
     color: #dc3545; /* 満席の日は赤 */
+}
+
+.calendar-cell.limit-reached .capacity-indicator {
+  color: #dc3545;
 }
 
 /* ==================================== */

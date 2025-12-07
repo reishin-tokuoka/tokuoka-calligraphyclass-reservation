@@ -429,6 +429,9 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
               dayClass += ' available clickable';
               capacityInfo = '予約可'; 
               isReservable = true;
+            } else if (userLimitReached) {
+              dayClass += ' limit-reached clickable';
+              capacityInfo = '予約不可';
             } else {
               // 満席：赤 (fully-booked full)
               dayClass += ' fully-booked full';
