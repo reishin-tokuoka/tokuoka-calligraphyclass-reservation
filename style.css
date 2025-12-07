@@ -598,6 +598,7 @@ select:focus {
 }
 .unavailable-reason {
   color: red;
+  font-size: 0.85em;
 }
 
 /* 予約済み情報などの補助テキスト (今回はボタンに統合したため省略可能) */
