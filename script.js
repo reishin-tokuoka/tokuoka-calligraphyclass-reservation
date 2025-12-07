@@ -493,7 +493,7 @@ function selectDate(dateString) {
 function renderAvailableClassesList(classes, dateString, monthKey) {
   // セッションストレージからユーザ情報取得
   const currentUser = getSessionUserInfo();
-  const upperLimit = currentUser.upperLimit;
+  const upperLimit = currentUser.upperLimitNumber;
 
   let listHtml = '';
 
