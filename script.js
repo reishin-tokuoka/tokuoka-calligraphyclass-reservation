@@ -390,6 +390,9 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
     
     const currentUser = getSessionUserInfo();
     const upperLimit = currentUser.upperLimitNumber;
+    const reservedCount = myReservations.length;
+    const AttendedCount = myAttendedDates.length;
+    const userLimitReached = (reservedCount + AttendedCount) == upperLimit;
   
     // ⭐ 日付セルを作成
     for (let day = 1; day <= lastDayOfMonth.getDate(); day++) {
@@ -420,10 +423,6 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
           } else {
             // --- 授業あり（予約可能/満席の判定） ---
             const totalRemaining = dayCapacity.reduce((sum, item) => sum + item.remainingCapacity, 0);
-
-            const reservedCount = myReservations.length;
-            const AttendedCount = myAttendedDates.filter(item => item.includes(dateString)).length;
-            const userLimitReached = (reservedCount + AttendedCount) == upperLimit;
 
             if (totalRemaining > 0 && !userLimitReached) {
               // 空席あり：緑 (reservable clickable)
