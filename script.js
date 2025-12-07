@@ -523,7 +523,7 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
                     data-action="cancel" 
                     data-date="${dateString}" 
                     data-time="${item.startTime} - ${item.endTime}"
-                    data-reservation-id="${reservation.reservationId}">
+                    data-reservation-id="${reservation[`${item.startTime} ${item.endTime}`].reservationId}">
                 キャンセルする
             </button>
         `;
