@@ -503,7 +503,7 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
     // MY_RESERVIONSから取得して、予約済み時間を特定
     const isReserved = MY_RESERVIONS.includes(`${dateString} ${item.startTime}`);
     const isFull = item.remainingCapacity <= 0;
-    const buttonHtml = '';
+    let buttonHtml = '';
 
     // -----------------------------------------------------------------
     // A. 自分が予約済みの場合: キャンセルボタンを表示
