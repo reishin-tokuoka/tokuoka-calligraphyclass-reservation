@@ -550,7 +550,7 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
                   data-action="reserve" 
                   data-lesson-id="${item.lessonId}" 
                   data-date="${dateString}" 
-                  data-time="${item.startTime} - ${item.endTime}">
+                  data-time="${item.startTime}">
               予約する
           </button>
       `;
