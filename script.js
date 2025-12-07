@@ -410,34 +410,37 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
                 isMyAttended = true;
             }
         } else {
-            // --- 授業なしの判定 ---
-            if (dayCapacity.length === 0) {
-                // 授業なし：提案色（薄い灰色）の inactive を使用
-                dayClass += ' no-lesson inactive'; // 授業なしの日
-            } else {
-                // --- 授業あり（予約可能/満席の判定） ---
-                const totalRemaining = dayCapacity.reduce((sum, item) => sum + item.remainingCapacity, 0);
+          // --- 授業なしの判定 ---
+          if (dayCapacity.length === 0) {
+              // 授業なし：提案色（薄い灰色）の inactive を使用
+              dayClass += ' no-lesson inactive'; // 授業なしの日
+          } else {
+            // --- 授業あり（予約可能/満席の判定） ---
+            const totalRemaining = dayCapacity.reduce((sum, item) => sum + item.remainingCapacity, 0);
 
-                if (totalRemaining > 0) {
-                    // 空席あり：緑 (reservable clickable)
-                    dayClass += ' available clickable';
-                    capacityInfo = '予約可'; 
-                    isReservable = true;
-                } else {
-                    // 満席：赤 (fully-booked full)
-                    dayClass += ' fully-booked full';
-                    capacityInfo = '満席';
-                }
-                
-                // --- 予約済みの判定 ---
-                // myReservations は 'YYYY-MM-DD' の日付文字列の配列と想定なのでsome + inculudesで判定（実際は、'YYYY-MM-DD HH:mm'　リスト表示で必要）
-                const reservedCheck = myReservations.some(dateTimeString => dateTimeString.includes(dateString));
-                if (reservedCheck) {
-                    // 予約済みの日：青 (my-reserved)
-                    dayClass += ' my-reserved';
-                    isMyReserved = true;
-                }
+            if (totalRemaining > 0) {
+                // 空席あり：緑 (reservable clickable)
+                dayClass += ' available clickable';
+                capacityInfo = '予約可'; 
+                isReservable = true;
+            } else {
+                // 満席：赤 (fully-booked full)
+                dayClass += ' fully-booked full';
+                capacityInfo = '満席';
             }
+            
+            // --- 予約済みの判定 ---
+            // myReservations は 'YYYY-MM-DD' の日付文字列の配列と想定なのでsome + inculudesで判定（実際は、'YYYY-MM-DD HH:mm'　リスト表示で必要）
+            const reservedCheck = myReservations.some(dateTimeObj => {
+              const keys = Object.keys(dateTimeObj);
+              return keys.some(key => key.includes(dateString));
+            });
+            if (reservedCheck) {
+                // 予約済みの日：青 (my-reserved)
+                dayClass += ' my-reserved';
+                isMyReserved = true;
+            }
+          }
         }
         
         // ローディング中の表示
