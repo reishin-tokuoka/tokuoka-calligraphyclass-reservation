@@ -635,6 +635,7 @@ function confirmReservationCancel(buttonElement) {
   // セッションストレージからユーザ情報取得
   const currentUser = getSessionUserInfo();
   const classNameText = currentUser.className; //ユーザのクラス名を送信
+  const userId = currentUser.userId
 
   const message = `${dateString} ${time} の ${classNameText} をキャンセルします。よろしいですか？`;
 
@@ -642,7 +643,7 @@ function confirmReservationCancel(buttonElement) {
       '予約のキャンセル',
       message,
       async () => {
-          await executeCancellation(reservationId);
+          await executeCancellation(userId, reservationId);
       }
   );
 }
@@ -650,7 +651,7 @@ function confirmReservationCancel(buttonElement) {
 // ------------------------------
 // GASへのキャンセルAPIコール
 // ------------------------------
-async function executeCancellation(reservationId) {
+async function executeCancellation(userId, reservationId) {
   const payload = { mode: "cancelReservation", userId: userId, reservationId: reservationId };
   const formBody = new URLSearchParams(payload);
 
