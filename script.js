@@ -3,8 +3,9 @@
 // ====================================
 
 // 既存のグローバル変数
-const APP_VERSION = "VERSION_001"; // キャッシュ無効化用
 const GAS_BASE_URL = "https://script.google.com/macros/s/AKfycbxQPiNqa3uHpnkrCiwlLL1CvHxZojD9PNqaUjV_-viiGDvZzelNEB_D-sQ3oAsixS78/exec";
+const VERSION_KEY = 'config_version';
+const CONFIG_KEY = 'reservation_config_data';
 
 // 予約画面用
 let AVAILABLE_CAPACITY_DATA = {}; // { 'YYYY-MM-DD': [{ startTime: 'HH:mm', className: '...', remainingCapacity: N }, ...] }
@@ -64,22 +65,40 @@ async function main() {
 // GAS 設定をキャッシュ付きで取得
 // ------------------------------
 async function loadConfig() {
-    const cacheKey = "configCacheV1" + APP_VERSION;
-    const cache = localStorage.getItem(cacheKey);
-    if (cache) {
-      return JSON.parse(cache);
-    }
-    const res = await fetch(GAS_BASE_URL + "?mode=config");
+  const oldVersion = localStorage.getItem(VERSION_KEY);
+  const oldConfigJson = localStorage.getItem(CONFIG_KEY);
 
-    // 取得失敗時のエラーハンドリング
-    if (!res.ok) {
-        console.error(`設定ファイルのロードに失敗しました: ${res.status} ${res.statusText}`);
-        throw new Error("設定ファイルが見つからないか、アクセスできません。");
-    }
+  // --- 1. バージョンチェックAPIの実行 (軽量) ---
+  const versionRes = await fetch(GAS_BASE_URL + "?mode=version"); 
+  if (!versionRes.ok) {
+      // バージョン取得失敗時は、設定取得も諦め、古いキャッシュにフォールバック
+      if (oldConfigJson) return JSON.parse(oldConfigJson);
+      throw new Error("設定バージョンが取得できません。");
+  }
+  const newVersion = (await versionRes.json()).version; // GASは { version: "X.X.X" } を返す想定
 
-    const json = await res.json();
-    localStorage.setItem(cacheKey, JSON.stringify(json));
-    return json;
+  // --- 2. バージョン比較 ---
+  if (newVersion === oldVersion && oldConfigJson) {
+      // バージョンが同じでキャッシュが存在する場合、キャッシュを使用
+      console.log(`バージョン ${oldVersion} は最新です。キャッシュを使用。`);
+      return JSON.parse(oldConfigJson);
+  }
+  
+  // --- 3. 設定本体取得APIの実行 (バージョンが異なる場合) ---
+  console.log(`バージョンが更新されました (${oldVersion} -> ${newVersion})。設定本体を取得します。`);
+  const configRes = await fetch(GAS_BASE_URL + "?mode=config"); 
+
+  if (!configRes.ok) {
+      if (oldConfigJson) return JSON.parse(oldConfigJson);
+      throw new Error("設定本体の取得に失敗しました。");
+  }
+
+  const newConfig = await configRes.json(); // GASは設定オブジェクト本体を返す想定
+
+  // 4. キャッシュの更新
+  localStorage.setItem(VERSION_KEY, newVersion);
+  localStorage.setItem(CONFIG_KEY, JSON.stringify(newConfig));
+  return newConfig;
 }
 
 // ------------------------------
