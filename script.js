@@ -613,7 +613,7 @@ function confirmReservation(buttonElement) {
   const userId = currentUser.userId; //ユーザIDを送信
 
   // const message = `${dateString} ${displayTime} の ${classNameText} を予約します。よろしいですか？`;
-  const message = `予約時間： ${displayTime}<br>クラス名： ${classNameText}<br>上記の内容で予約してよろしいですか？`;
+  const message = `予約時間： ${displayTime}<br>クラス名： ${classNameText}<br>予約してよろしいですか？`;
 
   showCustomModal(
       `${dateString}の予約の確定`,
@@ -675,7 +675,7 @@ function confirmReservationCancel(buttonElement) {
   const userId = currentUser.userId
 
   //const message = `${dateString} ${time} の ${classNameText} をキャンセルします。よろしいですか？`;
-  const message = `予約時間： ${time}<br>クラス名： ${classNameText}<br>上記の予約をキャンセルしてよろしいですか？`;
+  const message = `予約時間： ${time}<br>クラス名： ${classNameText}<br>予約をキャンセルしてよろしいですか？`;
 
   showCustomModal(
       `${dateString}の予約のキャンセル`,
