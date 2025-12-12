@@ -23,6 +23,7 @@ const nextMonthBtnRes = document.getElementById('next-month-btn-res');         /
 const selectionDitailsModel = document.getElementById('selectionDitails-model');         // 予約画面の次月ボタン
 const selectionDetails = document.getElementById('selectionDetails'); 
 const selectedDateText = document.getElementById('selectedDateText');
+const closeModalButton = document.getElementById('closeModalButton');
 const availableClassesList = document.getElementById('availableClassesList');
 const classInfo = document.getElementById('userClassInfo');
 
@@ -491,7 +492,7 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
 // ------------------------------
 function selectDate(dateString) {
   selectedDateText.textContent = `📅 ${dateString} 授業一覧`;
-  selectionDitailsModel.addEventListener('click', closeReservationModal);
+  closeModalButton.addEventListener('click', closeReservationModal);
   selectionDitailsModel.classList.remove('hidden');
   
   // 該当日の残席情報を AVAILABLE_CAPACITY_DATA から取得し、リストを描画
