@@ -612,7 +612,8 @@ function confirmReservation(buttonElement) {
   const classNameText = currentUser.className; //ユーザのクラス名を送信
   const userId = currentUser.userId; //ユーザIDを送信
 
-  const message = `${dateString} ${displayTime} の ${classNameText} を予約します。よろしいですか？`;
+  // const message = `${dateString} ${displayTime} の ${classNameText} を予約します。よろしいですか？`;
+  const message = `予約時間： ${dateString} ${displayTime}<br>クラス名： ${classNameText}<br>上記の内容で予約してよろしいですか？`;
 
   showCustomModal(
       '予約の確定',
@@ -673,7 +674,8 @@ function confirmReservationCancel(buttonElement) {
   const classNameText = currentUser.className; //ユーザのクラス名を送信
   const userId = currentUser.userId
 
-  const message = `${dateString} ${time} の ${classNameText} をキャンセルします。よろしいですか？`;
+  //const message = `${dateString} ${time} の ${classNameText} をキャンセルします。よろしいですか？`;
+  const message = `予約時間： ${dateString} ${time}<br>クラス名： ${classNameText}<br>上記の予約をキャンセルしてよろしいですか？`;
 
   showCustomModal(
       '予約のキャンセル',
@@ -715,7 +717,8 @@ async function executeCancellation(userId, reservationId) {
 // ------------------------------
 const showCustomModal = (title, message, onConfirm) => {
     modalTitle.textContent = title;
-    modalMessage.textContent = message;
+    // modalMessage.textContent = message;
+    modalMessage.innerHTML = message;
 
     currentConfirmCallback = onConfirm; 
     customModal.classList.remove('hidden');
