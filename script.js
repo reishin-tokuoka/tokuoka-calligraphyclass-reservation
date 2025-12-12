@@ -599,6 +599,7 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
 // 予約確認モーダル表示
 // ------------------------------
 function confirmReservation(buttonElement) {
+  closeReservationModal();
   const lessonId = buttonElement.dataset.lessonId;
   const dateString = buttonElement.dataset.date;
   const time = buttonElement.dataset.time; // 開始時間 HH:mm
@@ -660,6 +661,7 @@ async function handleReservation(lessonId, dateString, time, classNameText, user
 // キャンセル処理（カスタムモーダル）
 // ------------------------------
 function confirmReservationCancel(buttonElement) {
+  closeReservationModal();
   const dateString = buttonElement.dataset.date;
   const time = buttonElement.dataset.time;
   const reservationId = buttonElement.dataset.reservationId;
@@ -725,6 +727,10 @@ function closeReservationModal() {
     selectionDitailsModel.classList.add('hidden');
 }
 
+function showReservationModal() {
+    selectionDitailsModel.classList.remove('hidden');
+}
+
 // ====================================
 // カスタムモーダル イベントリスナー設定
 // ====================================
@@ -747,7 +753,8 @@ function setupModalListeners() {
 
     // キャンセルボタンの処理
     modalCancelBtn.addEventListener('click', () => {
-        hideCustomModal();
+      hideCustomModal();
+      showReservationModal();
     });
 }
 
