@@ -647,11 +647,12 @@ async function handleReservation(lessonId, dateString, time, classNameText, user
         const json = await res.json();
 
         if (json.success) {
-            alert("予約が完了しました！");
-            // 選択エリアは非表示にする
-            selectionDitailsModel.classList.add('hidden');
-            // 予約成功後、カレンダーを再描画して残席情報を更新
-            fetchAndRenderCapacity(CURRENT_SCREEN_DATE);
+          alert("予約が完了しました！");
+          sendLiffMessage(`${json.reservationDateTime}の授業の予約完了しました。`);
+          // 選択エリアは非表示にする
+          selectionDitailsModel.classList.add('hidden');
+          // 予約成功後、カレンダーを再描画して残席情報を更新
+          fetchAndRenderCapacity(CURRENT_SCREEN_DATE);
         } else {
             alert("予約に失敗しました: " + (json.message || "残席がないか、上限を超えています。"));
         }
@@ -699,6 +700,7 @@ async function executeCancellation(userId, reservationId) {
       
       if (json.success) {
         alert("キャンセルが完了しました。");
+        sendLiffMessage(`${json.cancelDateTime}の授業のキャンセル完了しました。`);
         // 選択エリアは非表示にする
         selectionDitailsModel.classList.add('hidden');
         // 予約成功後、カレンダーを再描画して残席情報を更新
@@ -778,4 +780,20 @@ function getSessionUserInfo() {
     // JSON文字列をオブジェクトに戻す
     const userInfo = JSON.parse(userInfoJson);
     return userInfo;
+}
+
+function sendLiffMessage(messageText) {
+  // 1. LIFFが初期化されているか、かつLINEアプリ内で動作しているかを確認
+  if (!liff.isInClient()) {
+      alert("メッセージ送信はLINEアプリ内でのみ実行可能です。");
+      return;
+  }
+  // 2. メッセージを送信
+  liff.sendMessages([{ type: 'text', text: messageText }])
+      .then(() => {
+          console.log('Message sent successfully!');
+      })
+      .catch((err) => {
+          console.error('Error sending message:', err);
+      });
 }
