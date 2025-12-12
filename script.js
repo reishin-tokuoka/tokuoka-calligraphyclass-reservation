@@ -455,6 +455,8 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
             if (reservedCheck) {
               // 予約済みの日：青 (my-reserved)
               dayClass += ' my-reserved available';
+              // 予約済みの場合は下線を緑にしたい
+              dayClass = dayClass.replace('limit-reached ', '');
               isMyReserved = true;
               capacityInfo = '';
             }
