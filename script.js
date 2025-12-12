@@ -453,9 +453,10 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
               return keys.some(key => key.includes(dateString));
             });
             if (reservedCheck) {
-                // 予約済みの日：青 (my-reserved)
-                dayClass += ' my-reserved';
-                isMyReserved = true;
+              // 予約済みの日：青 (my-reserved)
+              dayClass += ' my-reserved';
+              isMyReserved = true;
+              capacityInfo = '';
             }
           }
         }
@@ -574,7 +575,7 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
           </button>
       `;
     } else {
-      let reason = isFull ? '満席' : '上限到達';
+      let reason = isFull ? '満席' : '授業（予約）回数の上限到達';
          buttonHtml = `
             <span class="status-text is-unavailable">${item.startTime} - ${item.endTime} ${item.className}</span><br>
             <span class="unavailable-reason">※${reason}のため予約不可</span>
