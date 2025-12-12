@@ -648,7 +648,7 @@ async function handleReservation(lessonId, dateString, time, classNameText, user
 
         if (json.success) {
           alert("予約が完了しました！");
-          sendLiffMessage(`${json.reservationDateTime}の授業の予約完了しました。`);
+          sendLiffMessage(`${json.reservationDateTime}の授業を予約しました。`);
           // 選択エリアは非表示にする
           selectionDitailsModel.classList.add('hidden');
           // 予約成功後、カレンダーを再描画して残席情報を更新
@@ -700,7 +700,7 @@ async function executeCancellation(userId, reservationId) {
       
       if (json.success) {
         alert("キャンセルが完了しました。");
-        sendLiffMessage(`${json.cancelDateTime}の授業のキャンセル完了しました。`);
+        sendLiffMessage(`${json.cancelDateTime}の授業をキャンセルしました。`);
         // 選択エリアは非表示にする
         selectionDitailsModel.classList.add('hidden');
         // 予約成功後、カレンダーを再描画して残席情報を更新
