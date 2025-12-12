@@ -454,7 +454,7 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
             });
             if (reservedCheck) {
               // 予約済みの日：青 (my-reserved)
-              dayClass += ' my-reserved';
+              dayClass += ' my-reserved available';
               isMyReserved = true;
               capacityInfo = '';
             }
