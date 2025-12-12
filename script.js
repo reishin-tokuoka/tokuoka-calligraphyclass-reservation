@@ -613,10 +613,10 @@ function confirmReservation(buttonElement) {
   const userId = currentUser.userId; //ユーザIDを送信
 
   // const message = `${dateString} ${displayTime} の ${classNameText} を予約します。よろしいですか？`;
-  const message = `予約時間： ${dateString} ${displayTime}<br>クラス名： ${classNameText}<br>上記の内容で予約してよろしいですか？`;
+  const message = `予約時間： ${displayTime}<br>クラス名： ${classNameText}<br>上記の内容で予約してよろしいですか？`;
 
   showCustomModal(
-      '予約の確定',
+      `${dateString}の予約の確定`,
       message,
       async () => {
           await handleReservation(lessonId, dateString, time, classNameText, userId);
@@ -675,10 +675,10 @@ function confirmReservationCancel(buttonElement) {
   const userId = currentUser.userId
 
   //const message = `${dateString} ${time} の ${classNameText} をキャンセルします。よろしいですか？`;
-  const message = `予約時間： ${dateString} ${time}<br>クラス名： ${classNameText}<br>上記の予約をキャンセルしてよろしいですか？`;
+  const message = `予約時間： ${time}<br>クラス名： ${classNameText}<br>上記の予約をキャンセルしてよろしいですか？`;
 
   showCustomModal(
-      '予約のキャンセル',
+      `${dateString}の予約のキャンセル`,
       message,
       async () => {
           await executeCancellation(userId, reservationId);
