@@ -491,6 +491,7 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
 // ------------------------------
 function selectDate(dateString) {
   selectedDateText.textContent = `📅 ${dateString} 授業一覧`;
+  selectionDitailsModel.addEventListener('click', closeReservationModal);
   selectionDitailsModel.classList.remove('hidden');
   
   // 該当日の残席情報を AVAILABLE_CAPACITY_DATA から取得し、リストを描画
@@ -718,6 +719,10 @@ const hideCustomModal = () => {
     customModal.classList.add('hidden');
     currentConfirmCallback = null;
 };
+
+function closeReservationModal() {
+    selectionDitailsModel.classList.add('hidden');
+}
 
 // ====================================
 // カスタムモーダル イベントリスナー設定
