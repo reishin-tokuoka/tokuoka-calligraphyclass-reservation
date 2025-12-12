@@ -700,7 +700,7 @@ async function executeCancellation(userId, reservationId) {
       
       if (json.success) {
         alert("キャンセルが完了しました。");
-        sendLiffMessage(`キャンセル： ${json.cancelDateTime}`);
+        sendLiffMessage(`キャンセル：${json.cancelDateTime}`);
         // 選択エリアは非表示にする
         selectionDitailsModel.classList.add('hidden');
         // 予約成功後、カレンダーを再描画して残席情報を更新
