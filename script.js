@@ -39,45 +39,31 @@ let currentConfirmCallback = null;
 
 document.addEventListener("DOMContentLoaded", main);
 async function main() {
-    document.getElementById("main").classList.remove("hidden");
+  document.getElementById("main").classList.remove("hidden");
+  
+  try {
+      await liff.init({ liffId: "2008592728-NkK9OenD" });
 
-    const config = await loadConfig();
-    console.log(config);
-    
-    try {
-        await liff.init({ liffId: "2008592728-NkK9OenD" });
+      if (!liff.isLoggedIn()) {
+          liff.login(); 
+          return;
+      }
+      await initUserAndConfig();
+      setupModalListeners();
 
-        if (!liff.isLoggedIn()) {
-            liff.login(); 
-            return;
-        }
-        await initUser(config);
-
-        setupModalListeners();
-
-    } catch (err) {
-        console.error('LIFF init failed or subsequent process failed:', err);
-        document.getElementById("errordisp").textContent = "初期化に失敗しました。LINEアプリの設定をご確認ください。";
-    }
+  } catch (err) {
+      console.error('LIFF init failed or subsequent process failed:', err);
+      document.getElementById("errordisp").textContent = "初期化に失敗しました。LINEアプリの設定をご確認ください。";
+  }
 }
 
 // ------------------------------
 // GAS 設定をキャッシュ付きで取得
 // ------------------------------
-async function loadConfig() {
+async function loadConfig(newVersion) {
   const oldVersion = localStorage.getItem(VERSION_KEY);
   const oldConfigJson = localStorage.getItem(CONFIG_KEY);
 
-  // --- 1. バージョンチェックAPIの実行 (軽量) ---
-  const versionRes = await fetch(GAS_BASE_URL + "?mode=version"); 
-  if (!versionRes.ok) {
-      // バージョン取得失敗時は、設定取得も諦め、古いキャッシュにフォールバック
-      if (oldConfigJson) return JSON.parse(oldConfigJson);
-      throw new Error("設定バージョンが取得できません。");
-  }
-  const newVersion = (await versionRes.json()).version; // GASは { version: "X.X.X" } を返す想定
-
-  // --- 2. バージョン比較 ---
   if (newVersion === oldVersion && oldConfigJson) {
       // バージョンが同じでキャッシュが存在する場合、キャッシュを使用
       console.log(`バージョン ${oldVersion} は最新です。キャッシュを使用。`);
@@ -104,7 +90,7 @@ async function loadConfig() {
 // ------------------------------
 // ユーザー情報取得（GASと通信）
 // ------------------------------
-async function initUser(config) {
+async function initUserAndConfig() {
 
   const currentUser = sessionStorage.getItem('userInfo');
   if (currentUser) {
@@ -113,6 +99,7 @@ async function initUser(config) {
   } else {
     const accessToken = liff.getAccessToken();
     const userInfo = await fetchUserInfo(accessToken);
+    const config = await loadConfig(userInfo.configVersion);
     
     document.getElementById("loading").classList.add("hidden");
   
