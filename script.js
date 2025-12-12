@@ -20,6 +20,7 @@ const calendarContainerRes = document.getElementById('calendar-container-res'); 
 const currentMonthSpanRes = document.getElementById('current-month-res');       // 予約画面の月表示
 const prevMonthBtnRes = document.getElementById('prev-month-btn-res');         // 予約画面の前月ボタン
 const nextMonthBtnRes = document.getElementById('next-month-btn-res');         // 予約画面の次月ボタン
+const selectionDitailsModel = document.getElementById('selectionDitails-model');         // 予約画面の次月ボタン
 const selectionDetails = document.getElementById('selectionDetails'); 
 const selectedDateText = document.getElementById('selectedDateText');
 const availableClassesList = document.getElementById('availableClassesList');
@@ -490,7 +491,7 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
 // ------------------------------
 function selectDate(dateString) {
   selectedDateText.textContent = `📅 ${dateString} 授業一覧`;
-  selectionDetails.classList.remove('hidden');
+  selectionDitailsModel.classList.remove('hidden');
   
   // 該当日の残席情報を AVAILABLE_CAPACITY_DATA から取得し、リストを描画
   const monthKey = `${CURRENT_SCREEN_DATE.getFullYear()}-${String(CURRENT_SCREEN_DATE.getMonth() + 1).padStart(2, '0')}`;
@@ -557,8 +558,10 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
     // -----------------------------------------------------------------
     } else if (!isFull && !userLimitReached) {
       buttonHtml = `
-          <span class="status-text available-info">${item.startTime} - ${item.endTime} ${item.className}</span><br>
-          <span class="remaining-class-number">👤 残り${item.remainingCapacity}席</span>
+          <div class="reservation-area-container">
+            <span class="status-text available-info">${item.startTime} - ${item.endTime} ${item.className}</span><br>
+            <span class="remaining-class-number">👤 残${item.remainingCapacity}席</span>
+          </div>
           <button class="class-select-button is-available-reserve" 
                   data-action="reserve" 
                   data-lesson-id="${item.lessonId}" 
@@ -639,7 +642,7 @@ async function handleReservation(lessonId, dateString, time, classNameText, user
         if (json.success) {
             alert("予約が完了しました！");
             // 選択エリアは非表示にする
-            selectionDetails.classList.add('hidden');
+            selectionDitailsModel.classList.add('hidden');
             // 予約成功後、カレンダーを再描画して残席情報を更新
             fetchAndRenderCapacity(CURRENT_SCREEN_DATE);
         } else {
@@ -688,7 +691,7 @@ async function executeCancellation(userId, reservationId) {
       if (json.success) {
         alert("キャンセルが完了しました。");
         // 選択エリアは非表示にする
-        selectionDetails.classList.add('hidden');
+        selectionDitailsModel.classList.add('hidden');
         // 予約成功後、カレンダーを再描画して残席情報を更新
         fetchAndRenderCapacity(CURRENT_SCREEN_DATE);
       } else {

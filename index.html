@@ -42,12 +42,6 @@
               <button id="next-month-btn-res">&gt;</button>
           </div>
           <div id="calendar-container-res" class="calendar"></div>
-
-          <div id="selectionDetails" class="selection-details hidden">
-              <h3 id="selectedDateText"></h3>
-              <div id="availableClassesList">
-              </div>
-          </div>
       </div>
     </div>
 
@@ -59,6 +53,14 @@
               <button id="modal-cancel-btn" class="modal-button modal-cancel">いいえ</button>
               <button id="modal-confirm-btn" class="modal-button modal-confirm">はい</button>
           </div>
+      </div>
+    </div>
+
+    <div id="selectionDitails-model" class="modal-overlay hidden">
+      <div id="selectionDetails" class="selection-details">
+        <button id="closeModalButton" class="close-button"></button>
+        <h3 id="selectedDateText"></h3>
+        <div id="availableClassesList"></div>
       </div>
     </div>
 

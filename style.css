@@ -190,10 +190,49 @@ select:focus {
     cursor: pointer; 
 }
 
+/* ❌ バツボタンのスタイル（HTMLには「×」などの文字は入れない） */
+.close-button {
+    position: absolute;
+    top: 15px; /* 上からの位置を調整 */
+    right: 15px; /* 右からの位置を調整 */
+    width: 24px; /* ボタンの幅 */
+    height: 24px; /* ボタンの高さ */
+    padding: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+/* 擬似要素を使って、斜め45度の線（棒）を作成し重ねる */
+.close-button::before,
+.close-button::after {
+    content: ''; /* 擬似要素には content が必要 */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px; /* 線の長さ */
+    height: 2px; /* 線の太さ */
+    background-color: #333; /* 線の色（濃いグレーや黒） */
+    border-radius: 1px;
+}
+
+/* 1本目の線：45度回転 */
+.close-button::before {
+    transform: translate(-50%, -50%) rotate(45deg);
+}
+
+/* 2本目の線：-45度回転 */
+.close-button::after {
+    transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+
+
+
 /* ==================================== */
 /* 4. カスタムモーダル */
 /* ==================================== */
-.modal-overlay { 
+.modal-overlay {
     position: fixed; 
     top: 0; 
     left: 0; 
