@@ -99,15 +99,12 @@ async function initUserAndConfig() {
   const currentUser = sessionStorage.getItem('userInfo');
   document.getElementById('loading').style.display = 'flex';
   if (currentUser) {
-    //document.getElementById("loading").classList.add("hidden");
     switchPage(false, JSON.parse(currentUser));
   } else {
     const accessToken = liff.getAccessToken();
     const userInfo = await fetchUserInfo(accessToken);
     const config = await loadConfig(userInfo.configVersion);
     
-    //document.getElementById("loading").classList.add("hidden");
-  
     if (userInfo.exists && userInfo.data) {      
       //セッションストレージにユーザ情報を保存
       const sessionUserInfoJson = JSON.stringify(userInfo.data);
