@@ -4,6 +4,7 @@
 
 // 既存のグローバル変数
 const GAS_BASE_URL = "https://script.google.com/macros/s/AKfycbxQPiNqa3uHpnkrCiwlLL1CvHxZojD9PNqaUjV_-viiGDvZzelNEB_D-sQ3oAsixS78/exec";
+const LIFF_ID = "2008592728-NkK9OenD";
 const VERSION_KEY = 'config_version';
 const CONFIG_KEY = 'reservation_config_data';
 
@@ -44,7 +45,7 @@ async function main() {
   document.getElementById("main").classList.remove("hidden");
   
   try {
-      await liff.init({ liffId: "2008592728-NkK9OenD" });
+      await liff.init({ liffId: LIFF_ID });
 
       if (!liff.isLoggedIn()) {
           liff.login(); 
