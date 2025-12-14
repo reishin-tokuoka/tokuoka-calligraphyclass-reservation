@@ -276,6 +276,7 @@ select:focus {
     border-bottom: 2px solid #333;
     padding-bottom: 5px;
     margin-bottom: 20px;
+    margin-top: 10px;
 }
 
 /* ==================================== */
