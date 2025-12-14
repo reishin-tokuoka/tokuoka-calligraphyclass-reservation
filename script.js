@@ -448,6 +448,10 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
           isReservable = true;
         } else if (userLimitReached) {
           dayClass += ' limit-reached inactive';
+          if (userReservedLimitReached) {
+            //予約済みだけで予約上限超過している場合
+            dayClass += ' clickable';
+          }
           capacityInfo = '予約不可';
         } else {
           // 満席：赤 (fully-booked full)
