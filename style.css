@@ -675,21 +675,19 @@ select:focus {
 /* 受講または予約上限数に達したときのメッセージエリア
 /* ==================================== */
 .reservedMsg {
-    border: 1px solid #D4B66E; /* 縁取りを少し濃い色にして目立たせる */
     background-color: #E0E0E0;
     color: #424242;
     font-size: 0.8em;
-    padding: 3px;
+    padding: 5px;
     margin-bottom: 15px; /* カレンダーとの間にスペースを設ける */
     border-radius: 8px;
     font-weight: bold;
 }
 .attendedMsg {
-    border: 1px solid #D4B66E; /* 縁取りを少し濃い色にして目立たせる */
     background-color: #FFFACD; /* レモンシフォン */
     color: #94713E; /* ダークゴールド */
     font-size: 0.8em;
-    padding: 3px;
+    padding: 4px;
     margin-bottom: 15px; /* カレンダーとの間にスペースを設ける */
     border-radius: 8px;
     font-weight: bold;

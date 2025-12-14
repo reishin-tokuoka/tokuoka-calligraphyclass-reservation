@@ -505,10 +505,10 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
     upperLimitMessageArea.classList.remove("hidden");
     if (userReservedLimitReached) {
       //予約だけで上限到達
-      upperLimitMessageArea.innerHTML = `<div class='reservedMsg'>⚠️今月の予約上限数（${upperLimit}回）に達しています。</div>`;
+      upperLimitMessageArea.innerHTML = `<div class='reservedMsg'>今月の予約上限数（${upperLimit}回）に到達しました。</div>`;
     } else {
       //受講上限到達
-      upperLimitMessageArea.innerHTML = `<div class='attendedMsg'>今月の受講お疲れ様でした。来月もお待ちしております🙌</div>`;
+      upperLimitMessageArea.innerHTML = `<div class='attendedMsg'>今月の受講お疲れ様でした！来月もお待ちしております🙌</div>`;
     }
   }
 }
@@ -603,6 +603,7 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
       let reason = isFull ? '満席' : '授業（予約）回数の上限到達';
          buttonHtml = `
             <span class="status-text is-unavailable">${item.startTime} - ${item.endTime} ${item.className}</span><br>
+            <span class="remaining-class-number">👤 残${item.remainingCapacity}席</span><br>
             <span class="unavailable-reason">※${reason}のため予約不可</span>
          `;
     }
