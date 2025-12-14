@@ -482,10 +482,10 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
     }
     
     // ローディング中の表示
-    if (status === 'loading') {
-        capacityInfo = '読込中...';
-        dayClass = 'calendar-cell loading'; // ロード中は上書き
-    }
+    // if (status === 'loading') {
+    //     capacityInfo = '読込中...';
+    //     dayClass = 'calendar-cell loading'; // ロード中は上書き
+    // }
 
     calendarHtml += `
         <div class="${dayClass}" data-date="${dateString}">
