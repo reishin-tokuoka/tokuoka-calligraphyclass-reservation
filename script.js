@@ -447,10 +447,12 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
           capacityInfo = '予約可';
           isReservable = true;
         } else if (userLimitReached) {
-          dayClass += ' limit-reached inactive';
+          dayClass += ' limit-reached';
           if (userReservedLimitReached) {
             //予約済みだけで予約上限超過している場合
             dayClass += ' clickable';
+          } else {
+            dayClass += ' inactive';
           }
           capacityInfo = '予約不可';
         } else {
