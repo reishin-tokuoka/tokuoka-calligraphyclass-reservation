@@ -97,15 +97,16 @@ async function loadConfig(newVersion) {
 async function initUserAndConfig() {
 
   const currentUser = sessionStorage.getItem('userInfo');
+  document.getElementById('loading').style.display = 'flex';
   if (currentUser) {
-    document.getElementById("loading").classList.add("hidden");
+    //document.getElementById("loading").classList.add("hidden");
     switchPage(false, JSON.parse(currentUser));
   } else {
     const accessToken = liff.getAccessToken();
     const userInfo = await fetchUserInfo(accessToken);
     const config = await loadConfig(userInfo.configVersion);
     
-    document.getElementById("loading").classList.add("hidden");
+    //document.getElementById("loading").classList.add("hidden");
   
     if (userInfo.exists && userInfo.data) {      
       //セッションストレージにユーザ情報を保存
@@ -113,11 +114,13 @@ async function initUserAndConfig() {
       sessionStorage.setItem('userInfo', sessionUserInfoJson);
   
       document.getElementById("user-select").classList.add("hidden");
+      document.getElementById('loading').style.display = 'none';
       switchPage(false, userInfo.data);
       
     } else if (userInfo.data) {
       const { userId: fetchedUserId, displayName: fetchedDisplayName } = userInfo.data;
       document.getElementById("user-select").classList.remove("hidden");
+      document.getElementById('loading').style.display = 'none';
       setupClassSelect(fetchedUserId, fetchedDisplayName, config);
     } else {
       console.error("ユーザー情報の取得に失敗しました。", userInfo.message);
