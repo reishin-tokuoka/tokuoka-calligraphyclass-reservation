@@ -508,7 +508,7 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
       upperLimitMessageArea.innerHTML = `<div class='reservedMsg'>今月の予約上限数（${upperLimit}回）に到達しました。</div>`;
     } else {
       //受講上限到達
-      upperLimitMessageArea.innerHTML = `<div class='attendedMsg'>今月の受講お疲れ様でした！来月もお待ちしております🙌</div>`;
+      upperLimitMessageArea.innerHTML = `<div class='attendedMsg'>今月の受講お疲れ様でした🙌</div>`;
     }
   }
 }
