@@ -27,6 +27,7 @@ const selectedDateText = document.getElementById('selectedDateText');
 const closeModalButton = document.getElementById('closeModalButton');
 const availableClassesList = document.getElementById('availableClassesList');
 const classInfo = document.getElementById('userClassInfo');
+const upperLimitMessageArea = document.getElementById('upperLimitMessageArea');
 
 // カスタムモーダル要素
 const customModal = document.getElementById('custom-modal');
@@ -365,130 +366,146 @@ async function fetchAndRenderCapacity(date) {
 // 予約画面のカレンダー描画ロジック 
 // ------------------------------
 function renderReservationCalendar(date, status, capacityData = {}, myReservations = [], myAttendedDates = []) {
-    
-    const year = date.getFullYear();
-    const month = date.getMonth(); // 0-11
-    
-    // 予約画面専用のDOM要素を参照
-    currentMonthSpanRes.textContent = `${year}年 ${month + 1}月`; 
-    calendarContainerRes.innerHTML = ''; // クリア
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); 
-    const firstDayOfMonth = new Date(year, month, 1);
-    const lastDayOfMonth = new Date(year, month + 1, 0);
-    
-    // 予約可能月制限 (MAX_RESERVABLE_MONTHSに基づく)
-    // MAX_RESERVABLE_MONTHS はグローバル変数に定義済みとする
-    const maxReservableDateBoundary = new Date(today.getFullYear(), today.getMonth() + MAX_RESERVABLE_MONTHS, 1);
-
-    // 【月移動ボタン制御】
-    prevMonthBtnRes.disabled = (year === today.getFullYear() && month === today.getMonth());
-    nextMonthBtnRes.disabled = (firstDayOfMonth.getTime() >= maxReservableDateBoundary.getTime());
-
-    // 【曜日のヘッダー作成】
-    const daysOfWeek = ['日', '月', '火', '水', '木', '金', '土'];
-    let calendarHtml = '';
-    daysOfWeek.forEach(day => { calendarHtml += `<div class="calendar-day-header">${day}</div>`; });
-
-    // 【1日の開始曜日までの空セルを作成】
-    const startDayOfWeek = firstDayOfMonth.getDay(); 
-    for (let i = 0; i < startDayOfWeek; i++) {
-        calendarHtml += '<div class="calendar-cell inactive"></div>';
-    }
-    
-    const currentUser = getSessionUserInfo();
-    const upperLimit = currentUser.upperLimitNumber;
-    const reservedCount = myReservations.length;
-    const AttendedCount = myAttendedDates.length;
-    const userLimitReached = (reservedCount + AttendedCount) == upperLimit;
   
-    // ⭐ 日付セルを作成
-    for (let day = 1; day <= lastDayOfMonth.getDate(); day++) {
-        const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        const currentDateOnly = new Date(dateString); 
-        
-        let dayClass = 'calendar-cell';
-        let capacityInfo = ''; 
-        let isReservable = false;
-        let isMyReserved = false; // 予約済みフラグを追加
-        let isMyAttended = false;
-        // capacityData は { 'YYYY-MM-DD': [{ ... }] } の形式
-        const dayCapacity = capacityData[dateString] || [];
-        
-        if (currentDateOnly < today) {
-            dayClass += ' inactive';
-            // 受講済みチェック(過去日は授業なし判定と同じになるので、ここでチェック)
-            const myAttendedDateCheck = myAttendedDates.some(dateTimeString => dateTimeString.includes(dateString));
-            if (myAttendedDateCheck) {
-                dayClass += ' my-attended';
-                isMyAttended = true;
-            }
+  // 上限到達エリアの初期化
+  upperLimitMessageArea.innerText = "";
+
+  const year = date.getFullYear();
+  const month = date.getMonth(); // 0-11
+  
+  // 予約画面専用のDOM要素を参照
+  currentMonthSpanRes.textContent = `${year}年 ${month + 1}月`; 
+  calendarContainerRes.innerHTML = ''; // クリア
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); 
+  const firstDayOfMonth = new Date(year, month, 1);
+  const lastDayOfMonth = new Date(year, month + 1, 0);
+  
+  // 予約可能月制限 (MAX_RESERVABLE_MONTHSに基づく)
+  // MAX_RESERVABLE_MONTHS はグローバル変数に定義済みとする
+  const maxReservableDateBoundary = new Date(today.getFullYear(), today.getMonth() + MAX_RESERVABLE_MONTHS, 1);
+
+  // 【月移動ボタン制御】
+  prevMonthBtnRes.disabled = (year === today.getFullYear() && month === today.getMonth());
+  nextMonthBtnRes.disabled = (firstDayOfMonth.getTime() >= maxReservableDateBoundary.getTime());
+
+  // 【曜日のヘッダー作成】
+  const daysOfWeek = ['日', '月', '火', '水', '木', '金', '土'];
+  let calendarHtml = '';
+  daysOfWeek.forEach(day => { calendarHtml += `<div class="calendar-day-header">${day}</div>`; });
+
+  // 【1日の開始曜日までの空セルを作成】
+  const startDayOfWeek = firstDayOfMonth.getDay(); 
+  for (let i = 0; i < startDayOfWeek; i++) {
+      calendarHtml += '<div class="calendar-cell inactive"></div>';
+  }
+    
+  const currentUser = getSessionUserInfo();
+  const upperLimit = currentUser.upperLimitNumber;
+  const reservedCount = myReservations.length;
+  const AttendedCount = myAttendedDates.length;
+  // 予約数で上限到達か
+  const userReservedLimitReached = reservedCount === upperLimit;
+  // 予約数と受講数の合計で上限到達か
+  const userLimitReached = (reservedCount + AttendedCount) == upperLimit;
+
+  // ⭐ 日付セルを作成
+  for (let day = 1; day <= lastDayOfMonth.getDate(); day++) {
+    const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const currentDateOnly = new Date(dateString); 
+    
+    let dayClass = 'calendar-cell';
+    let capacityInfo = ''; 
+    let isReservable = false;
+    let isMyReserved = false; // 予約済みフラグを追加
+    let isMyAttended = false;
+    // capacityData は { 'YYYY-MM-DD': [{ ... }] } の形式
+    const dayCapacity = capacityData[dateString] || [];
+    
+    if (currentDateOnly < today) {
+        dayClass += ' inactive';
+        // 受講済みチェック(過去日は授業なし判定と同じになるので、ここでチェック)
+        const myAttendedDateCheck = myAttendedDates.some(dateTimeString => dateTimeString.includes(dateString));
+        if (myAttendedDateCheck) {
+            dayClass += ' my-attended';
+            isMyAttended = true;
+        }
+    } else {
+      // --- 授業なしの判定 ---
+      if (dayCapacity.length === 0) {
+          // 授業なし：提案色（薄い灰色）の inactive を使用
+          dayClass += ' no-lesson inactive'; // 授業なしの日
+      } else {
+        // --- 授業あり（予約可能/満席の判定） ---
+        const totalRemaining = dayCapacity.reduce((sum, item) => sum + item.remainingCapacity, 0);
+
+        if (totalRemaining > 0 && !userLimitReached) {
+          // 空席あり：緑 (reservable clickable)
+          dayClass += ' available clickable';
+          capacityInfo = '予約可'; 
+          isReservable = true;
+        } else if (userLimitReached) {
+          dayClass += ' limit-reached clickable inactive';
+          capacityInfo = '予約不可';
         } else {
-          // --- 授業なしの判定 ---
-          if (dayCapacity.length === 0) {
-              // 授業なし：提案色（薄い灰色）の inactive を使用
-              dayClass += ' no-lesson inactive'; // 授業なしの日
-          } else {
-            // --- 授業あり（予約可能/満席の判定） ---
-            const totalRemaining = dayCapacity.reduce((sum, item) => sum + item.remainingCapacity, 0);
-
-            if (totalRemaining > 0 && !userLimitReached) {
-              // 空席あり：緑 (reservable clickable)
-              dayClass += ' available clickable';
-              capacityInfo = '予約可'; 
-              isReservable = true;
-            } else if (userLimitReached) {
-              dayClass += ' limit-reached clickable';
-              capacityInfo = '予約不可';
-            } else {
-              // 満席：赤 (fully-booked full)
-              dayClass += ' fully-booked full';
-              capacityInfo = '満席';
-            }
-            
-            // --- 予約済みの判定 ---
-            // myReservations は 'YYYY-MM-DD' の日付文字列の配列と想定なのでsome + inculudesで判定（実際は、'YYYY-MM-DD HH:mm'　リスト表示で必要）
-            const reservedCheck = myReservations.some(dateTimeObj => {
-              const keys = Object.keys(dateTimeObj);
-              return keys.some(key => key.includes(dateString));
-            });
-            if (reservedCheck) {
-              // 予約済みの日：青 (my-reserved)
-              dayClass += ' my-reserved available';
-              // 予約済みの場合は下線を緑にしたい
-              dayClass = dayClass.replace('limit-reached ', '');
-              isMyReserved = true;
-              capacityInfo = '';
-            }
-          }
+          // 満席：赤 (fully-booked full)
+          dayClass += ' fully-booked full';
+          capacityInfo = '満席';
         }
         
-        // ローディング中の表示
-        if (status === 'loading') {
-            capacityInfo = '読込中...';
-            dayClass = 'calendar-cell loading'; // ロード中は上書き
+        // --- 予約済みの判定 ---
+        // myReservations は 'YYYY-MM-DD' の日付文字列の配列と想定なのでsome + inculudesで判定（実際は、'YYYY-MM-DD HH:mm'　リスト表示で必要）
+        const reservedCheck = myReservations.some(dateTimeObj => {
+          const keys = Object.keys(dateTimeObj);
+          return keys.some(key => key.includes(dateString));
+        });
+        if (reservedCheck) {
+          // 予約済みの日：青 (my-reserved)
+          dayClass += ' my-reserved available';
+          // 予約済みの場合は下線を緑にしたい
+          dayClass = dayClass.replace('limit-reached ', '');
+          isMyReserved = true;
+          capacityInfo = '';
         }
-
-        calendarHtml += `
-            <div class="${dayClass}" data-date="${dateString}">
-                <span class="date-number">${day}</span>
-                ${isMyAttended ? '<span class="my-attended-badge">受講済</span>' : ''}
-                ${isMyReserved ? '<span class="my-reserved-badge">予約済</span>' : ''} 
-                ${isReservable || dayCapacity.length > 0 ? `<div class="capacity-indicator">${capacityInfo}</div>` : ''}
-            </div>
-        `;
+      }
     }
     
-    // ⭐️ 予約画面専用のカレンダーコンテナに書き込む
-    calendarContainerRes.innerHTML = calendarHtml;
-
-    // ⭐ リスナー再設定 (reservable clickableな要素のみ)
-    if (status === 'loaded') {
-        calendarContainerRes.querySelectorAll('.calendar-cell.clickable').forEach(cell => {
-            cell.addEventListener('click', (event) => selectDate(event.currentTarget.dataset.date));
-        });
+    // ローディング中の表示
+    if (status === 'loading') {
+        capacityInfo = '読込中...';
+        dayClass = 'calendar-cell loading'; // ロード中は上書き
     }
+
+    calendarHtml += `
+        <div class="${dayClass}" data-date="${dateString}">
+            <span class="date-number">${day}</span>
+            ${isMyAttended ? '<span class="my-attended-badge">受講済</span>' : ''}
+            ${isMyReserved ? '<span class="my-reserved-badge">予約済</span>' : ''} 
+            ${isReservable || dayCapacity.length > 0 ? `<div class="capacity-indicator">${capacityInfo}</div>` : ''}
+        </div>
+    `;
+  }
+  
+  // ⭐️ 予約画面専用のカレンダーコンテナに書き込む
+  calendarContainerRes.innerHTML = calendarHtml;
+
+  // ⭐ リスナー再設定 (reservable clickableな要素のみ)
+  if (status === 'loaded') {
+      calendarContainerRes.querySelectorAll('.calendar-cell.clickable').forEach(cell => {
+          cell.addEventListener('click', (event) => selectDate(event.currentTarget.dataset.date));
+      });
+  }
+  // 上限到達時のメッセージ表示
+  if (userLimitReached) {
+    if (userReservedLimitReached) {
+      //予約だけで上限到達
+      upperLimitMessageArea.innerHTML = "<div class='reservedMsg'>⚠️今月の予約上限に達しています。</div>";
+    } else {
+      //受講上限到達
+      upperLimitMessageArea.innerHTML = "<div class='attendedMsg'>今月の受講上限に達しました。来月もお待ちしております🙌</div>";
+    }
+  }
 }
 
 // ------------------------------

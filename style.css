@@ -670,3 +670,22 @@ select:focus {
   color: red;
   font-weight: bold;
 }
+
+/* ==================================== */
+/* 受講または予約上限数に達したときのメッセージエリア
+/* ==================================== */
+#upperLimitMessageArea {
+    border: 1px solid #D4B66E; /* 縁取りを少し濃い色にして目立たせる */
+    padding: 10px;
+    margin-bottom: 15px; /* カレンダーとの間にスペースを設ける */
+    border-radius: 8px;
+    font-weight: bold;
+}
+.reservedMsg {
+    background-color: #E0E0E0;
+    color: #424242;
+}
+.attendedMsg {
+    background-color: #FFFACD; /* レモンシフォン */
+    color: #94713E; /* ダークゴールド */
+}
