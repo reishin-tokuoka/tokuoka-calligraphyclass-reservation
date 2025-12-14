@@ -369,6 +369,7 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
   
   // 上限到達エリアの初期化
   upperLimitMessageArea.innerText = "";
+  upperLimitMessageArea.classList.add("hidden");
 
   const year = date.getFullYear();
   const month = date.getMonth(); // 0-11
@@ -446,7 +447,7 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
           capacityInfo = '予約可'; 
           isReservable = true;
         } else if (userLimitReached) {
-          dayClass += ' limit-reached clickable inactive';
+          dayClass += ' limit-reached inactive';
           capacityInfo = '予約不可';
         } else {
           // 満席：赤 (fully-booked full)
@@ -498,12 +499,13 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
   }
   // 上限到達時のメッセージ表示
   if (userLimitReached) {
+    upperLimitMessageArea.classList.remove("hidden");
     if (userReservedLimitReached) {
       //予約だけで上限到達
-      upperLimitMessageArea.innerHTML = "<div class='reservedMsg'>⚠️今月の予約上限に達しています。</div>";
+      upperLimitMessageArea.innerHTML = `<div class='reservedMsg'>⚠️今月の予約上限数（${upperLimit}回）に達しています。</div>`;
     } else {
       //受講上限到達
-      upperLimitMessageArea.innerHTML = "<div class='attendedMsg'>今月の受講上限に達しました。来月もお待ちしております🙌</div>";
+      upperLimitMessageArea.innerHTML = `<div class='attendedMsg'>来月もお待ちしております🙌>今月の受講お疲れ様でした。<br>来月もお待ちしております🙌</div>`;
     }
   }
 }
