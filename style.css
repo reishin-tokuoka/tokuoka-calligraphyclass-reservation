@@ -678,7 +678,7 @@ select:focus {
     background-color: #E0E0E0;
     color: #424242;
     font-size: 0.9em;
-    padding: 10px;
+    padding: 5px;
     /* margin-bottom: 15px; カレンダーとの間にスペースを設ける */
     border-radius: 8px;
     font-weight: bold;
@@ -687,7 +687,7 @@ select:focus {
     background-color: #FFFACD; /* レモンシフォン */
     color: #94713E; /* ダークゴールド */
     font-size: 0.9em;
-    padding: 10px;
+    padding: 5px;
     /* margin-bottom: 15px; カレンダーとの間にスペースを設ける */
     border-radius: 8px;
     font-weight: bold;
