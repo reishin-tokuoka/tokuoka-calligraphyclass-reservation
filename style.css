@@ -703,7 +703,7 @@ select:focus {
     align-items: center;
     justify-content: center;
     min-height: 150px; /* 適切な高さを確保 */
-    width: 100%;
+    width: 90%;
     /* 初期表示設定: JSでデータ取得中は 'flex' に変更し、完了後に 'none' に戻します */
     /* display: none; */ 
     font-size: 14px;
