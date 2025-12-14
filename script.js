@@ -406,8 +406,8 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
   const upperLimit = currentUser.upperLimitNumber;
   const reservedCount = myReservations.length;
   const AttendedCount = myAttendedDates.length;
-  // 予約数で上限到達か
-  const userReservedLimitReached = reservedCount === upperLimit;
+  // 受講済みで上限到達か
+  const userAttendedLimitReached = AttendedCount === upperLimit;
   // 予約数と受講数の合計で上限到達か
   const userLimitReached = (reservedCount + AttendedCount) == upperLimit;
 
@@ -448,8 +448,7 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
           isReservable = true;
         } else if (userLimitReached) {
           dayClass += ' limit-reached';
-          if (userReservedLimitReached) {
-            //予約済みだけで予約上限超過している場合
+          if (!userAttendedLimitReached) {
             dayClass += ' clickable';
           } else {
             dayClass += ' inactive';
@@ -509,8 +508,7 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
   // 上限到達時のメッセージ表示
   if (userLimitReached) {
     upperLimitMessageArea.classList.remove("hidden");
-    if (userReservedLimitReached) {
-      //予約だけで上限到達
+    if (!userAttendedLimitReached) {
       upperLimitMessageArea.innerHTML = `<div class='reservedMsg'>今月の予約上限数（${upperLimit}回）に到達しました。</div>`;
     } else {
       //受講上限到達
