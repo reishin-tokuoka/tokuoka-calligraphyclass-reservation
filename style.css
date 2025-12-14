@@ -679,7 +679,7 @@ select:focus {
     color: #424242;
     font-size: 0.9em;
     padding: 5px;
-    /* margin-bottom: 15px; カレンダーとの間にスペースを設ける */
+    margin-bottom: 3px;
     border-radius: 8px;
     font-weight: bold;
 }
@@ -688,7 +688,7 @@ select:focus {
     color: #94713E; /* ダークゴールド */
     font-size: 0.9em;
     padding: 5px;
-    /* margin-bottom: 15px; カレンダーとの間にスペースを設ける */
+    margin-bottom: 3px; 
     border-radius: 8px;
     font-weight: bold;
 }
