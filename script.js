@@ -3,7 +3,7 @@
 // ====================================
 
 // 既存のグローバル変数
-const GAS_BASE_URL = "https://script.google.com/macros/s/AKfycbxQPiNqa3uHpnkrCiwlLL1CvHxZojD9PNqaUjV_-viiGDvZzelNEB_D-sQ3oAsixS78/exec";
+const GAS_BASE_URL = 'process.env.GAS_ENDPOINT_URL';
 const LIFF_ID = "2008592728-NkK9OenD";
 const VERSION_KEY = 'config_version';
 const CONFIG_KEY = 'reservation_config_data';
@@ -448,7 +448,7 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
             currentDateOnly.getMonth() === today.getMonth() &&
           currentDateOnly.getDate() === today.getDate())
           {
-            dayClass += ' today-contact available clickable';
+            dayClass += ' today-contact available clickable'; 
             capacityInfo = '要連絡';
           } else {
             dayClass += ' available clickable';
