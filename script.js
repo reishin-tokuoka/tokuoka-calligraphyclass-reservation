@@ -2,7 +2,7 @@
 // 1. グローバル変数と定数
 // ====================================
 
-// 既存のグローバル変数
+// 既存のグローバル変数 
 const GAS_BASE_URL = '$$GAS_ENDPOINT_URL_PLACEHOLDER$$';
 const LIFF_ID = "2008592728-NkK9OenD";
 const VERSION_KEY = 'config_version';
