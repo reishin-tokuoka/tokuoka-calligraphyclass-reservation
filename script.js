@@ -433,15 +433,6 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
         dayClass += ' my-attended';
         isMyAttended = true;
       }
-    // 当日
-    } else if (currentDateOnly.getFullYear() === today.getFullYear() &&
-        currentDateOnly.getMonth() === today.getMonth() &&
-      currentDateOnly.getDate() === today.getDate() && dayCapacity.length !== 0)
-    {
-      dayClass += ' today-contact available clickable';
-      capacityInfo = '要連絡';
-    
-    //未来
     } else {
       // --- 授業なしの判定 ---
       if (dayCapacity.length === 0) {
@@ -453,9 +444,17 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
 
         if (totalRemaining > 0 && !userLimitReached) {
           // 空席あり：緑 (reservable clickable)
-          dayClass += ' available clickable';
-          capacityInfo = '予約可';
-          isReservable = true;
+          if (currentDateOnly.getFullYear() === today.getFullYear() &&
+            currentDateOnly.getMonth() === today.getMonth() &&
+          currentDateOnly.getDate() === today.getDate())
+          {
+            dayClass += ' today-contact available clickable';
+            capacityInfo = '要連絡';
+          } else {
+            dayClass += ' available clickable';
+            capacityInfo = '予約可';
+            isReservable = true;
+          }
         } else if (userLimitReached) {
           dayClass += ' limit-reached';
           if (!userAttendedLimitReached) {

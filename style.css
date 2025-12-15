@@ -592,7 +592,7 @@ select:focus {
 
 .calendar-cell.today-contact {
     border-bottom: 2px solid orange; /* 赤の線で予約不可を示す */
-    color: orange;
+    color: #333;
 }
 
 /* 予約枠を示すインジケーター（残席数や「満席」の文字） */
