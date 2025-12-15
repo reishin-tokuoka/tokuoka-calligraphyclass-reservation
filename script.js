@@ -549,6 +549,7 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
   const reservedCount = monthReservation.length;
   const AttendedCount = MY_ATTEDED_DATES.filter(item => item.includes(monthKey)).length;
   const userLimitReached = (reservedCount + AttendedCount) == upperLimit;
+  const now = new Date();
 
   classes.forEach(item => {
     // MY_RESERVIONSから取得して、予約済み時間を特定
@@ -565,9 +566,8 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
     if (isReserved) {
       const reservationId = reservation[`${dateString} ${item.startTime}`].reservationId;
       const cancellableUntil = reservation[`${dateString} ${item.startTime}`].cancellableUntil;
-      const now = new Date();
       const cancellableUntilDate = new Date(cancellableUntil);
-      if (cancellableUntilDate > now) {
+      if (cancellableUntilDate.getTime() > now.getTime()) {
         buttonHtml = `
               <span class="status-text reserved-info">${item.startTime} - ${item.endTime} ${item.className}</span><br>
               <span class="reserved-class">✅ 予約済み(取消期限:${cancellableUntil})</span>
@@ -583,26 +583,38 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
         buttonHtml = `
             <span class="status-text is-unavailable">${item.startTime} - ${item.endTime} ${item.className}</span><br>
             <span class="unavailable-reason">※キャンセル期限切れのためキャンセル不可</span>
-          `;        
+          `;
       }
     // -----------------------------------------------------------------
     // B. 予約可能で、満席でも上限でもない場合: 予約ボタンを表示
     // -----------------------------------------------------------------
     } else if (!isFull && !userLimitReached) {
-      buttonHtml = `
-          <div class="reservation-area-container">
-            <span class="status-text available-info">${item.startTime} - ${item.endTime} ${item.className}</span><br>
-            <span class="remaining-class-number">👤 残${item.remainingCapacity}席</span>
-          </div>
-          <button class="class-select-button is-available-reserve" 
-                  data-action="reserve" 
-                  data-lesson-id="${item.lessonId}" 
-                  data-date="${dateString}" 
-                  data-time="${item.startTime}"
-                  data-display-time="${item.startTime} - ${item.endTime}">
-              予約する
-          </button>
-      `;
+      // 残席数はあるけど、当日予約は不可。
+      const dateStringDate = new Date(dateString);
+      if (dateStringDate.getFullYear() === now.getFullYear() &&
+        dateStringDate.getMonth() === now.getMonth() &&
+        dateStringDate.getDate() === now.getDate()
+      ) {
+        buttonHtml = `
+          <span class="status-text is-unavailable">${item.startTime} - ${item.endTime} ${item.className}</span><br>
+          <span class="unavailable-reason">※当日予約はLINEで直接ご連絡お願いします。</span>
+        `;
+      } else {
+        buttonHtml = `
+            <div class="reservation-area-container">
+              <span class="status-text available-info">${item.startTime} - ${item.endTime} ${item.className}</span><br>
+              <span class="remaining-class-number">👤 残${item.remainingCapacity}席</span>
+            </div>
+            <button class="class-select-button is-available-reserve" 
+                    data-action="reserve" 
+                    data-lesson-id="${item.lessonId}" 
+                    data-date="${dateString}" 
+                    data-time="${item.startTime}"
+                    data-display-time="${item.startTime} - ${item.endTime}">
+                予約する
+            </button>
+        `;
+      }
     } else {
       let reason = isFull ? '満席' : '授業（予約）回数の上限到達';
          buttonHtml = `
