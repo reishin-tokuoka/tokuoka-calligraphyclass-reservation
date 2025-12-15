@@ -424,14 +424,24 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
     // capacityData は { 'YYYY-MM-DD': [{ ... }] } の形式
     const dayCapacity = capacityData[dateString] || [];
     
+    // 過去
     if (currentDateOnly < today) {
-        dayClass += ' inactive';
-        // 受講済みチェック(過去日は授業なし判定と同じになるので、ここでチェック)
-        const myAttendedDateCheck = myAttendedDates.some(dateTimeString => dateTimeString.includes(dateString));
-        if (myAttendedDateCheck) {
-            dayClass += ' my-attended';
-            isMyAttended = true;
-        }
+      dayClass += ' inactive';
+      // 受講済みチェック(過去日は授業なし判定と同じになるので、ここでチェック)
+      const myAttendedDateCheck = myAttendedDates.some(dateTimeString => dateTimeString.includes(dateString));
+      if (myAttendedDateCheck) {
+        dayClass += ' my-attended';
+        isMyAttended = true;
+      }
+    // 当日
+    } else if (currentDateOnly.getFullYear() === today.getFullYear() &&
+        currentDateOnly.getMonth() === today.getMonth() &&
+      currentDateOnly.getDate() === today.getDate() && dayCapacity.length !== 0)
+    {
+      dayClass += ' today-contact available clickable';
+      capacityInfo = '要連絡';
+    
+    //未来
     } else {
       // --- 授業なしの判定 ---
       if (dayCapacity.length === 0) {
@@ -597,7 +607,7 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
       ) {
         buttonHtml = `
           <span class="status-text is-unavailable">${item.startTime} - ${item.endTime} ${item.className}</span><br>
-          <span class="unavailable-reason">※当日予約はLINEで直接ご連絡お願いします。</span>
+          <span class="unavailable-reason">※当日予約はLINEにて直接ご連絡お願いします。</span>
         `;
       } else {
         buttonHtml = `

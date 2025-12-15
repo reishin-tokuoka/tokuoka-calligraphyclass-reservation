@@ -398,13 +398,18 @@ select:focus {
 
 /* 満席の日 */
 .calendar-cell.full {
-  border-bottom: 3px solid #dc3545; /* 赤の線で満席を示す */
+  border-bottom: 2px solid #dc3545; /* 赤の線で満席を示す */
   color: #dc3545;
 }
 
 .calendar-cell.limit-reached {
-  border-bottom: 3px solid #dc3545; /* 赤の線で予約不可を示す */
+  border-bottom: 2px solid #dc3545; /* 赤の線で予約不可を示す */
   color: #dc3545;
+}
+
+.calendar-cell.today-contact {
+  border-bottom: 2px solid orange; /* 赤の線で予約不可を示す */
+  color: orange;
 }
 
 /* ==================================== */
@@ -585,6 +590,11 @@ select:focus {
   color: #333; /* 文字色は黒を維持（見やすさのため）*/
 }
 
+.calendar-cell.today-contact {
+    border-bottom: 2px solid orange; /* 赤の線で予約不可を示す */
+    color: orange;
+}
+
 /* 予約枠を示すインジケーター（残席数や「満席」の文字） */
 .capacity-indicator {
     /* ... 既存のスタイル ... */
@@ -599,6 +609,10 @@ select:focus {
 
 .calendar-cell.limit-reached .capacity-indicator {
   color: #dc3545;
+}
+
+.calendar-cell.today-contact .capacity-indicator {
+  color: orange;
 }
 
 /* ==================================== */
