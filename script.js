@@ -4,7 +4,7 @@
 
 // 既存のグローバル変数
 const GAS_BASE_URL = "$$GAS_ENDPOINT_URL_PLACEHOLDER$$";
-const LIFF_ID = "2008592728-NkK9OenD";
+const LIFF_ID = "$$LIFF_ID_PLACEHOLDER$$";
 const VERSION_KEY = 'config_version';
 const CONFIG_KEY = 'reservation_config_data';
 
