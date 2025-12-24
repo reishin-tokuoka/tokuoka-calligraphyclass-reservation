@@ -604,10 +604,19 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
         dateStringDate.getMonth() === now.getMonth() &&
         dateStringDate.getDate() === now.getDate()
       ) {
-        buttonHtml = `
-          <span class="status-text is-unavailable">${item.startTime} - ${item.endTime} ${item.className}</span><br>
-          <span class="unavailable-reason">※当日予約はLINEにて直接ご連絡お願いします。</span>
-        `;
+        const endTimeArray = item.endTime.split(":");
+        const isClassIsOver = now.getTime() > new Date(dateStringDate.getFullYear(), dateStringDate.getMonth(), dateStringDate.getDate(), endTimeArray[0], endTimeArray[1]).getTime();
+        if (isClassIsOver) {
+          buttonHtml = `
+            <span class="status-text is-unavailable">${item.startTime} - ${item.endTime} ${item.className}</span><br>
+            <span class="unavailable-reason">※授業は終了したため、予約できません。</span>
+          `;
+        } else {
+          buttonHtml = `
+            <span class="status-text is-unavailable">${item.startTime} - ${item.endTime} ${item.className}</span><br>
+            <span class="unavailable-reason">※当日予約はLINEにて直接ご連絡お願いします。</span>
+          `;
+        }
       } else {
         buttonHtml = `
             <div class="reservation-area-container">
