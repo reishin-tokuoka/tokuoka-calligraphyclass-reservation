@@ -609,7 +609,7 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
         if (isClassIsOver) {
           buttonHtml = `
             <span class="status-text is-unavailable">${item.startTime} - ${item.endTime} ${item.className}</span><br>
-            <span class="unavailable-reason">※授業は終了したため、予約できません。</span>
+            <span class="unavailable-reason">※この授業は終了しているため、予約できません。</span>
           `;
         } else {
           buttonHtml = `
