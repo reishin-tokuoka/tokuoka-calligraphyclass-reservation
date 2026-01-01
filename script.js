@@ -530,7 +530,7 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
 // 日付がクリックされたときの処理
 // ------------------------------
 function selectDate(dateString) {
-  selectedDateText.textContent = `📅 ${dateString} 授業一覧`;
+  selectedDateText.textContent = `📅 ${dateString} 稽古一覧`;
   closeModalButton.addEventListener('click', closeReservationModal);
   selectionDitailsModel.classList.remove('hidden');
   
