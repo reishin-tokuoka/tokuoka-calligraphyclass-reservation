@@ -697,7 +697,7 @@ async function handleReservation(lessonId, dateString, time, classNameText, user
 
         if (json.success) {
           alert("予約が完了しました！");
-          sendLiffMessage(`授業予約：${json.reservationDateTime}\n取消期限：${json.cancellableUntil}まで`);
+          sendLiffMessage(`稽古予約：${json.reservationDateTime}\n取消期限：${json.cancellableUntil}まで`);
           // 選択エリアは非表示にする
           selectionDitailsModel.classList.add('hidden');
           // 予約成功後、カレンダーを再描画して残席情報を更新
