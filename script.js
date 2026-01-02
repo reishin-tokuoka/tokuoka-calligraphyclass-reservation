@@ -530,7 +530,7 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
 // 日付がクリックされたときの処理
 // ------------------------------
 function selectDate(dateString) {
-  selectedDateText.textContent = `📅 ${dateString} 授業一覧`;
+  selectedDateText.textContent = `📅 ${dateString} 稽古一覧`;
   closeModalButton.addEventListener('click', closeReservationModal);
   selectionDitailsModel.classList.remove('hidden');
   
@@ -609,7 +609,7 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
         if (isClassIsOver) {
           buttonHtml = `
             <span class="status-text is-unavailable">${item.startTime} - ${item.endTime} ${item.className}</span><br>
-            <span class="unavailable-reason">※この授業は終了しているため、予約できません。</span>
+            <span class="unavailable-reason">※この稽古は終了しているため、予約できません。</span>
           `;
         } else {
           buttonHtml = `
@@ -634,7 +634,7 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
         `;
       }
     } else {
-      let reason = isFull ? '満席' : '授業（予約）回数の上限到達';
+      let reason = isFull ? '満席' : '稽古（予約）回数の上限到達';
          buttonHtml = `
             <span class="status-text is-unavailable">${item.startTime} - ${item.endTime} ${item.className}</span><br>
             <span class="remaining-class-number">👤 残${item.remainingCapacity}席</span><br>
@@ -706,7 +706,7 @@ async function handleReservation(lessonId, dateString, time, classNameText, user
 
         if (json.success) {
           alert("予約が完了しました！");
-          sendLiffMessage(`授業予約：${json.reservationDateTime}\n取消期限：${json.cancellableUntil}まで`);
+          sendLiffMessage(`稽古予約：${json.reservationDateTime}\n取消期限：${json.cancellableUntil}まで`);
           // 選択エリアは非表示にする
           selectionDitailsModel.classList.add('hidden');
           // 予約成功後、カレンダーを再描画して残席情報を更新
