@@ -555,8 +555,10 @@ function selectDate(dateString) {
 // ------------------------------
 function renderAvailableClassesList(classes, dateString, monthKey) {
   // セッションストレージからユーザ情報取得
+  const now = new Date();
   const currentUser = getSessionUserInfo();
-  const upperLimit = currentUser.upperLimitNumber;
+  const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  const upperLimit = currentMonthKey === monthKey ? currentUser.upperLimitNumberThisMonth : currentUser.upperLimitNumberNextMonth;
 
   let listHtml = '';
 
@@ -564,7 +566,6 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
   const reservedCount = monthReservation.length;
   const AttendedCount = MY_ATTEDED_DATES.filter(item => item.includes(monthKey)).length;
   const userLimitReached = (reservedCount + AttendedCount) == upperLimit;
-  const now = new Date();
 
   classes.forEach(item => {
     // MY_RESERVIONSから取得して、予約済み時間を特定
