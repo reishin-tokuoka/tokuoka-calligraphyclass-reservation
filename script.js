@@ -275,8 +275,6 @@ async function switchPage(registerFlag, userInfoJson = {}) {
       userSelect.classList.add("hidden");
   }
   reservation.classList.remove("hidden");
-  // ユーザのクラス・回数を画面上部に表示
-  classInfo.innerHTML = `<span id='userName'>   👤 ${userInfoJson.displayName}</span><span id='userClassName'>  ┊  🖌️ ${userInfoJson.className} 🗓️ 月${userInfoJson.upperLimitNumber}回</span>`;
   setupReservationScreen();
 }
 
@@ -313,53 +311,61 @@ function setupReservationScreen() {
  * @param {Date} date - 表示する月
  */
 async function fetchAndRenderCapacity(date) {
-    // 1. カレンダーのUIを先に描画する (ローディング表示)
-    renderReservationCalendar(date, 'loading');
+  // 1. カレンダーのUIを先に描画する (ローディング表示)
+  renderReservationCalendar(date, 'loading');
 
-    // セッションストレージからユーザ情報取得
-    const currentUser = getSessionUserInfo();
-    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`; 
-    let capacityData = {};
-    let myReservations = [];
-    let myAttendedDates = [];
+  // セッションストレージからユーザ情報取得
+  const currentUser = getSessionUserInfo();
+  const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`; 
+  let capacityData = {};
+  let myReservations = [];
+  let myAttendedDates = [];
+  
+  // ユーザのクラス・回数を画面上部に表示
+  const currentDate = new Date();
+  const currentMonthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`; 
+  if (currentMonthKey === monthKey) {
+    classInfo.innerHTML = `<span id='userName'>   👤 ${currentUser.displayName}</span><span id='userClassName'>  ┊  🖌️ ${currentUser.className} 🗓️ 月${currentUser.upperLimitNumberThisMonth}回</span>`;
+  } else {
+    classInfo.innerHTML = `<span id='userName'>   👤 ${currentUser.displayName}</span><span id='userClassName'>  ┊  🖌️ ${currentUser.className} 🗓️ 月${currentUser.upperLimitNumberNextMonth}回</span>`;
+  }
+  // 2. GASから統合されたカレンダー情報を取得する
+  try {
+    const payload = { 
+        mode: "getCalendarData",
+        year: date.getFullYear(), 
+        month: date.getMonth() + 1,
+        monthKey: monthKey,
+        userId: currentUser.userId
+    }; 
+    const formBody = new URLSearchParams(payload);
+    
+    const res = await fetch(GAS_BASE_URL, {
+        method: "POST", 
+        headers: { "Content-Type": "application/x-www-form-urlencoded" }, 
+        body: formBody
+    });
+    
+    const json = await res.json();
+    
+    if (json.success) {
+      // 💡 統合されたレスポンスから両方のデータを取得
+      capacityData = json.capacityData || {};
+      myReservations = json.myReservedDates || [];
+      myAttendedDates = json.myAttendedDates || [];
 
-    // 2. GASから統合されたカレンダー情報を取得する
-    try {
-      const payload = { 
-          mode: "getCalendarData",
-          year: date.getFullYear(), 
-          month: date.getMonth() + 1,
-          monthKey: monthKey,
-          userId: currentUser.userId
-      }; 
-      const formBody = new URLSearchParams(payload);
-      
-      const res = await fetch(GAS_BASE_URL, {
-          method: "POST", 
-          headers: { "Content-Type": "application/x-www-form-urlencoded" }, 
-          body: formBody
-      });
-      
-      const json = await res.json();
-      
-      if (json.success) {
-        // 💡 統合されたレスポンスから両方のデータを取得
-        capacityData = json.capacityData || {};
-        myReservations = json.myReservedDates || [];
-        myAttendedDates = json.myAttendedDates || [];
-
-        AVAILABLE_CAPACITY_DATA[monthKey] = capacityData; // 残席情報のみメモリに保存
-        MY_RESERVIONS[monthKey] = myReservations;
-        MY_ATTEDED_DATES = myAttendedDates;
-      } else {
-          console.error("カレンダー情報の取得に失敗しました", json.message);
-      }
-    } catch (e) {
-        console.error("カレンダー情報取得時の通信エラー", e);
+      AVAILABLE_CAPACITY_DATA[monthKey] = capacityData; // 残席情報のみメモリに保存
+      MY_RESERVIONS[monthKey] = myReservations;
+      MY_ATTEDED_DATES = myAttendedDates;
+    } else {
+        console.error("カレンダー情報の取得に失敗しました", json.message);
     }
+  } catch (e) {
+      console.error("カレンダー情報取得時の通信エラー", e);
+  }
 
-    // 3. 取得した残席情報と予約日リストを使ってカレンダーを再描画する
-    renderReservationCalendar(date, 'loaded', capacityData, myReservations, myAttendedDates);
+  // 3. 取得した残席情報と予約日リストを使ってカレンダーを再描画する
+  renderReservationCalendar(date, 'loaded', capacityData, myReservations, myAttendedDates);
 }
 
 // ------------------------------
@@ -403,7 +409,7 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
   }
     
   const currentUser = getSessionUserInfo();
-  const upperLimit = currentUser.upperLimitNumber;
+  const upperLimit = today.getMonth() === month ? currentUser.upperLimitNumberThisMonth : currentUser.upperLimitNumberNextMonth;
   const reservedCount = myReservations.length;
   const AttendedCount = myAttendedDates.length;
   // 受講済みで上限到達か
@@ -549,8 +555,10 @@ function selectDate(dateString) {
 // ------------------------------
 function renderAvailableClassesList(classes, dateString, monthKey) {
   // セッションストレージからユーザ情報取得
+  const now = new Date();
   const currentUser = getSessionUserInfo();
-  const upperLimit = currentUser.upperLimitNumber;
+  const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  const upperLimit = currentMonthKey === monthKey ? currentUser.upperLimitNumberThisMonth : currentUser.upperLimitNumberNextMonth;
 
   let listHtml = '';
 
@@ -558,7 +566,6 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
   const reservedCount = monthReservation.length;
   const AttendedCount = MY_ATTEDED_DATES.filter(item => item.includes(monthKey)).length;
   const userLimitReached = (reservedCount + AttendedCount) == upperLimit;
-  const now = new Date();
 
   classes.forEach(item => {
     // MY_RESERVIONSから取得して、予約済み時間を特定
@@ -604,10 +611,19 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
         dateStringDate.getMonth() === now.getMonth() &&
         dateStringDate.getDate() === now.getDate()
       ) {
-        buttonHtml = `
-          <span class="status-text is-unavailable">${item.startTime} - ${item.endTime} ${item.className}</span><br>
-          <span class="unavailable-reason">※当日予約はLINEにて直接ご連絡お願いします。</span>
-        `;
+        const endTimeArray = item.endTime.split(":");
+        const isClassIsOver = now.getTime() > new Date(dateStringDate.getFullYear(), dateStringDate.getMonth(), dateStringDate.getDate(), endTimeArray[0], endTimeArray[1]).getTime();
+        if (isClassIsOver) {
+          buttonHtml = `
+            <span class="status-text is-unavailable">${item.startTime} - ${item.endTime} ${item.className}</span><br>
+            <span class="unavailable-reason">※この稽古は終了しているため、予約できません。</span>
+          `;
+        } else {
+          buttonHtml = `
+            <span class="status-text is-unavailable">${item.startTime} - ${item.endTime} ${item.className}</span><br>
+            <span class="unavailable-reason">※当日予約はLINEにて直接ご連絡お願いします。</span>
+          `;
+        }
       } else {
         buttonHtml = `
             <div class="reservation-area-container">
@@ -625,7 +641,7 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
         `;
       }
     } else {
-      let reason = isFull ? '満席' : '授業（予約）回数の上限到達';
+      let reason = isFull ? '満席' : '稽古予約回数の上限到達';
          buttonHtml = `
             <span class="status-text is-unavailable">${item.startTime} - ${item.endTime} ${item.className}</span><br>
             <span class="remaining-class-number">👤 残${item.remainingCapacity}席</span><br>
