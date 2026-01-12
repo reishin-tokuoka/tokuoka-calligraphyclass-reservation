@@ -435,6 +435,15 @@ select:focus {
     border-bottom: 1px solid #eee;
 }
 
+#courseName {
+    color: #333;
+    margin-bottom: 5px;
+    font-size: 1.1em;
+    font-weight: bold;
+    border-bottom: 1px solid #eee;
+}
+
+
 #availableClassesList {
     display: flex;
     flex-direction: column;
@@ -624,6 +633,12 @@ select:focus {
     border-bottom: 1px solid #eee;
 }
 
+.time-slot-flex-container {
+  display: flex;
+  justify-content: space-between; /* 両端に寄せる */
+  align-items: center;           /* 上下中央に揃える */
+}
+
 /* アクションボタンの共通スタイル */
 .class-select-button {
     padding: 10px 15px;
@@ -635,7 +650,6 @@ select:focus {
     transition: background-color 0.2s;
     text-align: center;
     flex-grow: 1; /* ボタンがスペースを占有 */
-    width: 100%;
     margin-top: 3px;
 }
 

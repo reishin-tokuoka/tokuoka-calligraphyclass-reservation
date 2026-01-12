@@ -24,6 +24,7 @@ const nextMonthBtnRes = document.getElementById('next-month-btn-res');         /
 const selectionDitailsModel = document.getElementById('selectionDitails-model');         // 予約画面の次月ボタン
 const selectionDetails = document.getElementById('selectionDetails'); 
 const selectedDateText = document.getElementById('selectedDateText');
+const courseName = document.getElementById('courseName');
 const closeModalButton = document.getElementById('closeModalButton');
 const availableClassesList = document.getElementById('availableClassesList');
 const classInfo = document.getElementById('userClassInfo');
@@ -537,6 +538,7 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
 // ------------------------------
 function selectDate(dateString) {
   selectedDateText.textContent = `📅 ${dateString} 稽古一覧`;
+  courseName.textContent = "コース：一般・おとな美文字";
   closeModalButton.addEventListener('click', closeReservationModal);
   selectionDitailsModel.classList.remove('hidden');
   
@@ -575,6 +577,7 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
     const isReserved = !reservation ? false : true;
     const isFull = item.remainingCapacity <= 0;
     let buttonHtml = '';
+    let noButtonHtml = '';
 
     // -----------------------------------------------------------------
     // A. 自分が予約済みの場合: キャンセルボタンを表示
@@ -585,8 +588,10 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
       const cancellableUntilDate = new Date(cancellableUntil);
       if (cancellableUntilDate.getTime() > now.getTime()) {
         buttonHtml = `
-              <span class="status-text reserved-info">${item.startTime} - ${item.endTime} ${item.className}</span><br>
-              <span class="reserved-class">✅ 予約済み(取消期限:${cancellableUntil})</span>
+              <div class="reservation-area-container">
+                <span class="status-text reserved-info">${item.startTime} - ${item.endTime} ✅ 予約済み</span><br>
+                <span class="reserved-class">取消期限:${cancellableUntil})</span>
+              </div>
               <button class="class-select-button is-reserved-cancel" 
                       data-action="cancel" 
                       data-date="${dateString}" 
@@ -596,8 +601,8 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
               </button>
           `;
       } else {
-        buttonHtml = `
-            <span class="status-text is-unavailable">${item.startTime} - ${item.endTime} ${item.className}</span><br>
+        noButtonHtml = `
+            <span class="status-text is-unavailable">${item.startTime} - ${item.endTime}</span><br>
             <span class="unavailable-reason">※キャンセル期限切れのためキャンセル不可</span>
           `;
       }
@@ -614,21 +619,21 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
         const endTimeArray = item.endTime.split(":");
         const isClassIsOver = now.getTime() > new Date(dateStringDate.getFullYear(), dateStringDate.getMonth(), dateStringDate.getDate(), endTimeArray[0], endTimeArray[1]).getTime();
         if (isClassIsOver) {
-          buttonHtml = `
-            <span class="status-text is-unavailable">${item.startTime} - ${item.endTime} ${item.className}</span><br>
+          noButtonHtml = `
+            <span class="status-text is-unavailable">${item.startTime} - ${item.endTime}</span><br>
             <span class="unavailable-reason">※この稽古は終了しているため、予約できません。</span>
           `;
         } else {
-          buttonHtml = `
-            <span class="status-text is-unavailable">${item.startTime} - ${item.endTime} ${item.className}</span><br>
+          noButtonHtml = `
+            <span class="status-text is-unavailable">${item.startTime} - ${item.endTime}</span><br>
             <span class="unavailable-reason">※当日予約はLINEにて直接ご連絡お願いします。</span>
           `;
         }
       } else {
         buttonHtml = `
             <div class="reservation-area-container">
-              <span class="status-text available-info">${item.startTime} - ${item.endTime} ${item.className}</span><br>
-              <span class="remaining-class-number">👤 残${item.remainingCapacity}席</span>
+              <span class="status-text available-info">${item.startTime} - ${item.endTime}</span>
+              <span class="remaining-class-number"> 👤 残${item.remainingCapacity}席</span>
             </div>
             <button class="class-select-button is-available-reserve" 
                     data-action="reserve" 
@@ -642,14 +647,17 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
       }
     } else {
       let reason = isFull ? '満席' : '稽古予約回数の上限到達';
-         buttonHtml = `
-            <span class="status-text is-unavailable">${item.startTime} - ${item.endTime} ${item.className}</span><br>
-            <span class="remaining-class-number">👤 残${item.remainingCapacity}席</span><br>
+         noButtonHtml = `
+            <span class="status-text is-unavailable">${item.startTime} - ${item.endTime}</span>
+            <span class="remaining-class-number"> 👤 残${item.remainingCapacity}席</span><br>
             <span class="unavailable-reason">※${reason}のため予約不可</span>
          `;
     }
-
-    listHtml += `<div class="time-slot-container">${buttonHtml}</div>`;
+    if (buttonHtml) {
+      listHtml += `<div class="time-slot-container"><div class="time-slot-flex-container">${buttonHtml}</div></div>`;
+    } else {
+      listHtml += `<div class="time-slot-container">${noButtonHtml}</div>`;
+    }
   });
   availableClassesList.innerHTML = listHtml;
   
