@@ -697,7 +697,7 @@ select:focus {
   font-weight: bold;
 }
 .reserved-class {
-  font-size: 0.85em;
+  font-size: 0.75em;
   color: red;
   font-weight: bold;
 }
