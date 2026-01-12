@@ -597,7 +597,7 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
                       data-date="${dateString}" 
                       data-time="${item.startTime} - ${item.endTime}"
                       data-reservation-id="${reservationId}">
-                  キャンセルする
+                  キャンセル
               </button>
           `;
       } else {
@@ -641,7 +641,7 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
                     data-date="${dateString}" 
                     data-time="${item.startTime}"
                     data-display-time="${item.startTime} - ${item.endTime}">
-                予約する
+                予約
             </button>
         `;
       }
