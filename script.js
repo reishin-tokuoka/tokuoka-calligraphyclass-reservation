@@ -589,8 +589,8 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
       if (cancellableUntilDate.getTime() > now.getTime()) {
         buttonHtml = `
               <div class="reservation-area-container">
-                <span class="status-text reserved-info">${item.startTime} - ${item.endTime} ✅ 予約済み</span><br>
-                <span class="reserved-class">取消期限:${cancellableUntil})</span>
+                <span class="status-text reserved-info">${item.startTime} - ${item.endTime} ✅予約済み</span><br>
+                <span class="reserved-class">取消期限:${cancellableUntil}</span>
               </div>
               <button class="class-select-button is-reserved-cancel" 
                       data-action="cancel" 
