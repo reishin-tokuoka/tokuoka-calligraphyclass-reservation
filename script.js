@@ -525,10 +525,10 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
   if (userLimitReached) {
     upperLimitMessageArea.classList.remove("hidden");
     if (!userAttendedLimitReached) {
-      upperLimitMessageArea.innerHTML = `<div class='reservedMsg'>今月の予約上限数（${upperLimit}回）に到達しました。</div>`;
+      // upperLimitMessageArea.innerHTML = `<div class='reservedMsg'>今月の予約上限数（${upperLimit}回）に到達しました。</div>`;
     } else {
       //受講上限到達
-      upperLimitMessageArea.innerHTML = `<div class='attendedMsg'>今月の受講お疲れ様でした🙌</div>`;
+      upperLimitMessageArea.innerHTML = `<div class='attendedMsg'>今月の稽古お疲れ様でした🙌</div>`;
     }
   }
 }
@@ -538,7 +538,7 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
 // ------------------------------
 function selectDate(dateString) {
   selectedDateText.textContent = `📅 ${dateString} 稽古一覧`;
-  courseName.textContent = "コース：一般・おとな美文字";
+  courseName.textContent = "クラス：一般・おとな美文字";
   closeModalButton.addEventListener('click', closeReservationModal);
   selectionDitailsModel.classList.remove('hidden');
   
@@ -646,7 +646,7 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
         `;
       }
     } else {
-      let reason = isFull ? '満席' : '稽古予約回数の上限到達';
+      let reason = isFull ? '満席' : `稽古予約回数の上限（${upperLimit}回）到達`;
          noButtonHtml = `
             <span class="status-text is-unavailable">${item.startTime} - ${item.endTime}</span>
             <span class="remaining-class-number"> 👤 残${item.remainingCapacity}席</span><br>
