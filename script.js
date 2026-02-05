@@ -349,6 +349,7 @@ async function fetchAndRenderCapacity(date) {
           mode: "getCalendarData", // 既存のmodeをそのまま利用
           year: year,
           month: month,
+          monthKey: monthKey,
           userId: currentUser.userId
         })
       })
