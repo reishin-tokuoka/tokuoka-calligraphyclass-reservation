@@ -321,55 +321,66 @@ async function fetchAndRenderCapacity(date) {
   const year = date.getFullYear();
   const month = date.getMonth() + 1;
   const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`; 
-  let capacityData = {};
-  let myReservations = [];
-  let myAttendedDates = [];
   
   // ユーザのクラス・回数を画面上部に表示
   const currentDate = new Date();
   const currentMonthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`; 
-  if (currentMonthKey === monthKey) {
-    classInfo.innerHTML = `<span id='userName'>   👤 ${currentUser.displayName}</span><span id='userClassName'>  ┊  🖌️ ${currentUser.className} 🗓️ 月${currentUser.upperLimitNumberThisMonth}回</span>`;
-  } else {
-    classInfo.innerHTML = `<span id='userName'>   👤 ${currentUser.displayName}</span><span id='userClassName'>  ┊  🖌️ ${currentUser.className} 🗓️ 月${currentUser.upperLimitNumberNextMonth}回</span>`;
-  }
-  // 2. GASから統合されたカレンダー情報を取得する
+  const upperLimitLabel = currentMonthKey === monthKey ? currentUser.upperLimitNumberThisMonth : currentUser.upperLimitNumberNextMonth;
+  classInfo.innerHTML = `<span id='userName'>   👤 ${currentUser.displayName}</span><span id='userClassName'>  ┊  🖌️ ${currentUser.className} 🗓️ 月${upperLimitLabel}回</span>`;
+  
   try {
-
-    // ★ 爆速化のポイント：2つの通信を同時に開始する（Promise.all）
-    const [workersRes, gasRes] = await Promise.all([
-      // A. Workersから残席データを取得（0.1秒）
-      fetch(`${WORKERS_BASE_URL}?year=${year}&month=${month}`),
-      
-      // B. GASから自分の予約情報を取得（ここだけはGASが必要）
-      fetch(GAS_BASE_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-          mode: "getCalendarData", // 既存のmodeをそのまま利用
-          year: year,
-          month: month,
-          monthKey: monthKey,
-          userId: currentUser.userId
-        })
-      })
-    ]);
-
+    const workersRes = await fetch(`${WORKERS_BASE_URL}?year=${year}&month=${month}`);
     const workersJson = await workersRes.json();
-    const gasJson = await gasRes.json();
     
-    if (workersJson.success && gasJson.success) {
-      // 💡 Workersの残席とGASの予約情報をガッチャンコする
-      AVAILABLE_CAPACITY_DATA[monthKey] = workersJson.capacityData || {}; 
-      MY_RESERVIONS[monthKey] = gasJson.myReservedDates || [];
-      MY_ATTEDED_DATES = gasJson.myAttendedDates || [];
+    if (workersJson.success) {
+      AVAILABLE_CAPACITY_DATA[monthKey] = workersJson.capacityData || {};
+      
+      // ★ 1回目の描画（自分の予約はまだ空の状態で、カレンダーを即座に見せる）
+      console.log("Workersデータで先行描画します");
+      renderReservationCalendar(
+        date, 
+        'loaded', 
+        AVAILABLE_CAPACITY_DATA[monthKey], 
+        [], // まだ予約状況は空
+        []  // まだ受講履歴は空
+      );
     }
   } catch (e) {
-      console.error("カレンダー情報取得時の通信エラー", e);
+    console.error("Workers取得エラー:", e);
   }
 
-  // 3. 取得した残席情報と予約日リストを使ってカレンダーを再描画する
-  renderReservationCalendar(date, 'loaded', AVAILABLE_CAPACITY_DATA[monthKey], MY_RESERVIONS[monthKey], MY_ATTEDED_DATES);
+  try {
+    const gasRes = await fetch(GAS_BASE_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        mode: "getCalendarData",
+        year: year,
+        month: month,
+        monthKey: monthKey,
+        userId: currentUser.userId
+      })
+    });
+    const gasJson = await gasRes.json();
+    
+    if (gasJson.success) {
+      MY_RESERVIONS[monthKey] = gasJson.myReservedDates || [];
+      MY_ATTEDED_DATES = gasJson.myAttendedDates || [];
+      
+      // ★ 2回目の描画（GASからデータが来たので、予約マークを反映させる）
+      console.log("GASデータが届いたので、予約状況を更新します");
+      renderReservationCalendar(
+        date, 
+        'loaded', 
+        AVAILABLE_CAPACITY_DATA[monthKey], 
+        MY_RESERVIONS[monthKey], 
+        MY_ATTEDED_DATES
+      );
+    }
+  } catch (e) {
+    console.error("GAS取得エラー:", e);
+    // 万が一GASが失敗しても、Workersのデータは既に出ているので操作は継続可能
+  }
 }
 
 // ------------------------------
