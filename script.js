@@ -330,29 +330,60 @@ async function fetchAndRenderCapacity(date) {
   // 2. GASから統合されたカレンダー情報を取得する
   try {
 
-    // ★ userId もパラメータに含める！
-    const url = `${WORKERS_BASE_URL}?year=${year}&month=${month}&userId=${currentUser.userId}`;
-    
-    // 1回の通信ですべて取得
-    const res = await fetch(url);
-    const json = await res.json();
-    
-    if (json.success) {
-      AVAILABLE_CAPACITY_DATA[monthKey] = json.capacityData || {};
-      MY_RESERVIONS[monthKey] = json.myReservedDates || []; // Workersから返ってくる
-      MY_ATTEDED_DATES = json.myAttendedDates || [];       // Workersから返ってくる
+      // ★ 爆速化のポイント：2つの通信を同時に開始する（Promise.all）
+      const [workersRes, gasRes] = await Promise.all([
+      // A. Workersから残席データを取得（0.1秒）
+      fetch(`${WORKERS_BASE_URL}?year=${year}&month=${month}&userId=${currentUser.userId}`),
       
-      console.log("Workersから全データを取得しました");
-      
-      // ★ 1回で完全なカレンダーを描画！
-      renderReservationCalendar(
-        date, 
-        'loaded', 
-        AVAILABLE_CAPACITY_DATA[monthKey], 
-        MY_RESERVIONS[monthKey], 
-        MY_ATTEDED_DATES
-      );
+      // B. GASから自分の予約情報を取得（ここだけはGASが必要）
+      fetch(GAS_BASE_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          mode: "getCalendarData", // 既存のmodeをそのまま利用
+          year: year,
+          month: month,
+          monthKey: monthKey,
+          userId: currentUser.userId
+        })
+      })
+    ]);
+
+    const workersJson = await workersRes.json();
+    const gasJson = await gasRes.json();
+    
+    if (workersJson.success && gasJson.success) {
+      // 💡 Workersの残席とGASの予約情報をガッチャンコする
+      AVAILABLE_CAPACITY_DATA[monthKey] = workersJson.capacityData || {}; 
+      MY_RESERVIONS[monthKey] = gasJson.myReservedDates || [];
+      MY_ATTEDED_DATES = gasJson.myAttendedDates || [];
+      // 3. 取得した残席情報と予約日リストを使ってカレンダーを再描画する
+      renderReservationCalendar(date, 'loaded', AVAILABLE_CAPACITY_DATA[monthKey], MY_RESERVIONS[monthKey], MY_ATTEDED_DATES);
     }
+
+    // // ★ userId もパラメータに含める！
+    // const url = `${WORKERS_BASE_URL}?year=${year}&month=${month}&userId=${currentUser.userId}`;
+    
+    // // 1回の通信ですべて取得
+    // const res = await fetch(url);
+    // const json = await res.json();
+    
+    // if (json.success) {
+    //   AVAILABLE_CAPACITY_DATA[monthKey] = json.capacityData || {};
+    //   MY_RESERVIONS[monthKey] = json.myReservedDates || []; // Workersから返ってくる
+    //   MY_ATTEDED_DATES = json.myAttendedDates || [];       // Workersから返ってくる
+      
+    //   console.log("Workersから全データを取得しました");
+      
+    //   // ★ 1回で完全なカレンダーを描画！
+    //   renderReservationCalendar(
+    //     date, 
+    //     'loaded', 
+    //     AVAILABLE_CAPACITY_DATA[monthKey], 
+    //     MY_RESERVIONS[monthKey], 
+    //     MY_ATTEDED_DATES
+    //   );
+    // }
   } catch (e) {
       console.error("カレンダー情報取得時の通信エラー", e);
   }
