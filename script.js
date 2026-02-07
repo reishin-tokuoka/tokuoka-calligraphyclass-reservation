@@ -251,7 +251,7 @@ async function switchPage(registerFlag, userInfoJson = {}) {
       userSelect.classList.add("hidden");
   }
   reservation.classList.remove("hidden");
-  setupReservationScreen();
+  setupReservationScreen(userInfoJson);
 }
 
 // ====================================
@@ -261,12 +261,12 @@ async function switchPage(registerFlag, userInfoJson = {}) {
 /**
  * 予約画面の初期設定と月移動リスナーのセットアップ
  */
-function setupReservationScreen() {
+function setupReservationScreen(userInfoJson) {
     // 画面切り替え時にカレンダーをリセットして描画開始
     CURRENT_SCREEN_DATE.setDate(1); 
     // 時刻情報もクリアして、0時0分0秒に設定
     CURRENT_SCREEN_DATE.setHours(0, 0, 0, 0);
-    fetchAndRenderCapacity(CURRENT_SCREEN_DATE);
+    fetchAndRenderCapacity(CURRENT_SCREEN_DATE, userInfoJson);
 
     // 予約画面専用のボタンにリスナーを設定
     if (!prevMonthBtnRes.hasAttribute('data-res-listener')) {
@@ -286,12 +286,12 @@ function setupReservationScreen() {
  * 予約画面のカレンダー描画と、残席情報の取得・表示をメインで処理する
  * @param {Date} date - 表示する月
  */
-async function fetchAndRenderCapacity(date) {
+async function fetchAndRenderCapacity(date, userInfoJson = {}) {
   // 1. カレンダーのUIを先に描画する (ローディング表示)
   renderReservationCalendar(date, 'loading');
 
   // セッションストレージからユーザ情報取得
-  const currentUser = getSessionUserInfo();
+  const currentUser = userInfoJson || getSessionUserInfo();
   const year = date.getFullYear();
   const month = date.getMonth() + 1;
   const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`; 
