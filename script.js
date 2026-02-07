@@ -339,9 +339,15 @@ async function fetchAndRenderCapacity(date) {
     
     if (json.success) {
       AVAILABLE_CAPACITY_DATA[monthKey] = json.capacityData || {};
-      MY_RESERVIONS[monthKey] = json.myReservedDates.filter(item => item.includes(monthKey)) || []; // Workersから返ってくる
-      MY_ATTEDED_DATES = json.myAttendedDates.filter(item => item.includes(monthKey)) || [];       // Workersから返ってくる
-      
+      MY_RESERVIONS[monthKey] = json.myReservedDates.filter(dateTimeObj => {
+          const keys = Object.keys(dateTimeObj);
+          return keys.some(key => key.includes(monthKey));
+        }) || []; // Workersから返ってくる
+      MY_ATTEDED_DATES = json.myAttendedDates.filter(dateTimeObj => {
+          const keys = Object.keys(dateTimeObj);
+          return keys.some(key => key.includes(monthKey));
+        }) || []; // Workersから返ってくる
+
       console.log("Workersから全データを取得しました");
       
       // ★ 1回で完全なカレンダーを描画！
