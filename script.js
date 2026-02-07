@@ -60,7 +60,7 @@ async function main() {
       console.time("初期表示までの時間 start");
 
       // カレンダーを表示「読み込み中」状態に
-      renderReservationCalendar(new Date(), 'loading');
+      // renderReservationCalendar(new Date(), 'loading');
 
       // GASを叩かず、Workersから全情報を一度に取得する
       await fetchInitialAppData();
