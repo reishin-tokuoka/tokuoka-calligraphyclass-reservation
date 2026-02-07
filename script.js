@@ -56,98 +56,68 @@ async function main() {
       }
       // モーダル設定
       setupModalListeners();
+
       console.time("初期表示までの時間 start");
-      // Promise.allで「ユーザー情報取得」「カレンダー取得」を並列化
-      // fetchAndRenderCapacityに現在の月を渡して即実行します。
-      await Promise.all([
-        initUserAndConfig(), 
-        fetchAndRenderCapacity(new Date()) 
-      ]);
+
+      // カレンダーを表示「読み込み中」状態に
+      renderReservationCalendar(new Date(), 'loading');
+
+      // GASを叩かず、Workersから全情報を一度に取得する
+      await fetchInitialAppData();
+      
       console.time("初期表示までの時間 end");
+
   } catch (err) {
       console.error('LIFF init failed or subsequent process failed:', err);
       document.getElementById("errordisp").textContent = "初期化に失敗しました。LINEアプリの設定をご確認ください。";
   }
 }
 
-// ------------------------------
-// GAS 設定をキャッシュ付きで取得
-// ------------------------------
-async function loadConfig(newVersion) {
-  const oldVersion = localStorage.getItem(VERSION_KEY);
-  const oldConfigJson = localStorage.getItem(CONFIG_KEY);
+/**
+ * Workers KVから「ユーザー情報」「設定」「残席」「自分の予約」を一括で取得して描画する
+ */
+async function fetchInitialAppData() {
+  const profile = await liff.getProfile();
+  const userId = profile.userId;
+  const displayName = profile.displayName; // 新規登録時に使用
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth() + 1;
 
-  if (newVersion === oldVersion && oldConfigJson) {
-      // バージョンが同じでキャッシュが存在する場合、キャッシュを使用
-      console.log(`バージョン ${oldVersion} は最新です。キャッシュを使用。`);
-      return JSON.parse(oldConfigJson);
-  }
-  
-  // --- 3. 設定本体取得APIの実行 (バージョンが異なる場合) ---
-  console.log(`バージョンが更新されました (${oldVersion} -> ${newVersion})。設定本体を取得します。`);
-  const configRes = await fetch(GAS_BASE_URL + "?mode=config"); 
+  // Workersへ一括問い合わせ
+  const url = `${WORKERS_BASE_URL}?year=${year}&month=${month}&userId=${userId}`;
+  const response = await fetch(url);
+  const json = await response.json();
 
-  if (!configRes.ok) {
-      if (oldConfigJson) return JSON.parse(oldConfigJson);
-      throw new Error("設定本体の取得に失敗しました。");
-  }
+  if (!json.success) throw new Error("データの取得に失敗しました。");
 
-  const newConfig = await configRes.json(); // GASは設定オブジェクト本体を返す想定
+  // --- 分岐点：Workersにユーザー情報があるか ---
+  if (json.userInfo && json.userInfo.data) {
+    // 【既存ユーザー】
+    console.log("登録済みユーザーです。カレンダーを表示します。");
+    
+    const monthKey = `${year}-${String(month).padStart(2, '0')}`;
+    sessionStorage.setItem('userInfo', JSON.stringify(json.userInfo.data));
+    
+    AVAILABLE_CAPACITY_DATA[monthKey] = json.capacityData;
+    MY_RESERVIONS[monthKey] = json.userInfo.myReservedDates;
+    MY_ATTEDED_DATES = json.userInfo.myAttendedDates;
 
-  // 4. キャッシュの更新
-  localStorage.setItem(VERSION_KEY, newVersion);
-  localStorage.setItem(CONFIG_KEY, JSON.stringify(newConfig));
-  return newConfig;
-}
+    switchPage(false, json.userInfo.data);
+    renderReservationCalendar(today, 'loaded', json.capacityData, MY_RESERVIONS[monthKey], MY_ATTEDED_DATES);
+    document.getElementById('loading').style.display = 'none';
 
-// ------------------------------
-// ユーザー情報取得（GASと通信）
-// ------------------------------
-async function initUserAndConfig() {
-
-  const currentUser = sessionStorage.getItem('userInfo');
-  document.getElementById('loading').style.display = 'flex';
-  if (currentUser) {
-    switchPage(false, JSON.parse(currentUser));
   } else {
-    const accessToken = liff.getAccessToken();
-    const userInfo = await fetchUserInfo(accessToken);
-    const config = await loadConfig(userInfo.configVersion);
+    // 【新規ユーザー】
+    console.log("未登録ユーザーです。授業選択画面を表示します。");
     
-    if (userInfo.exists && userInfo.data) {      
-      //セッションストレージにユーザ情報を保存
-      const sessionUserInfoJson = JSON.stringify(userInfo.data);
-      sessionStorage.setItem('userInfo', sessionUserInfoJson);
-  
-      document.getElementById("user-select").classList.add("hidden");
-      document.getElementById('loading').style.display = 'none';
-      switchPage(false, userInfo.data);
-      
-    } else if (userInfo.data) {
-      const { userId: fetchedUserId, displayName: fetchedDisplayName } = userInfo.data;
-      document.getElementById("user-select").classList.remove("hidden");
-      document.getElementById('loading').style.display = 'none';
-      setupClassSelect(fetchedUserId, fetchedDisplayName, config);
-    } else {
-      console.error("ユーザー情報の取得に失敗しました。", userInfo.message);
-      document.getElementById("errordisp").textContent = "ユーザー情報取得エラー: " + userInfo.message;
-    }
+    // Workersから返ってきた config を使ってセットアップ
+    document.getElementById("user-select").classList.remove("hidden");
+    document.getElementById('loading').style.display = 'none';
+    
+    // お使いの setupClassSelect を呼び出し
+    setupClassSelect(userId, displayName, json.config);
   }
-}
-
-// -----------------------------
-// ユーザ情報取得（GAS高速）
-// -----------------------------
-async function fetchUserInfo(accessToken) {
-    const payload = { mode: "verifyAndGetUserInfo", accessToken: accessToken };
-    const formBody = new URLSearchParams(payload);
-    
-    const res = await fetch(GAS_BASE_URL, {
-        method: "POST", 
-        headers: { "Content-Type": "application/x-www-form-urlencoded" }, 
-        body: formBody
-    });
-    return await res.json();
 }
 
 // -----------------------------
