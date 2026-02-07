@@ -48,15 +48,22 @@ async function main() {
   document.getElementById("main").classList.remove("hidden");
   
   try {
+      // 初期化は並列実行不可
       await liff.init({ liffId: LIFF_ID });
-
       if (!liff.isLoggedIn()) {
           liff.login(); 
           return;
       }
-      await initUserAndConfig();
+      // モーダル設定
       setupModalListeners();
-
+      console.time("初期表示までの時間 start");
+      // Promise.allで「ユーザー情報取得」「カレンダー取得」を並列化
+      // fetchAndRenderCapacityに現在の月を渡して即実行します。
+      await Promise.all([
+        initUserAndConfig(), 
+        fetchAndRenderCapacity(new Date()) 
+      ]);
+      console.time("初期表示までの時間 end");
   } catch (err) {
       console.error('LIFF init failed or subsequent process failed:', err);
       document.getElementById("errordisp").textContent = "初期化に失敗しました。LINEアプリの設定をご確認ください。";
