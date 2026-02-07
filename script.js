@@ -59,9 +59,6 @@ async function main() {
 
       console.time("初期表示までの時間 start");
 
-      // カレンダーを表示「読み込み中」状態に
-      // renderReservationCalendar(new Date(), 'loading');
-
       // GASを叩かず、Workersから全情報を一度に取得する
       await fetchInitialAppData();
       
@@ -316,11 +313,11 @@ async function fetchAndRenderCapacity(date) {
     
     if (json.success) {
       AVAILABLE_CAPACITY_DATA[monthKey] = json.capacityData || {};
-      MY_RESERVIONS[monthKey] = json.myReservedDates.filter(dateTimeObj => {
+      MY_RESERVIONS[monthKey] = json.userInfo.myReservedDates.filter(dateTimeObj => {
           const keys = Object.keys(dateTimeObj);
           return keys.some(key => key.includes(monthKey));
         }) || []; // Workersから返ってくる
-      MY_ATTEDED_DATES = json.myAttendedDates.filter(dateTimeObj => {
+      MY_ATTEDED_DATES = json.userInfo.myAttendedDates.filter(dateTimeObj => {
           const keys = Object.keys(dateTimeObj);
           return keys.some(key => key.includes(monthKey));
         }) || []; // Workersから返ってくる
