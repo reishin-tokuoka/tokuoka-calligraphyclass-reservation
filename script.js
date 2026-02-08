@@ -333,7 +333,7 @@ async function fetchAndRenderCapacity(date) {
 // ------------------------------
 // 予約画面のカレンダー描画ロジック 
 // ------------------------------
-function renderReservationCalendar(date, status, capacityData = {}, myReservations = [], myAttendedDates = { data: [], lastFetch: 0 }) {
+function renderReservationCalendar(date, status, capacityData = {}, myReservations = [], myAttendedDates = []) {
   
   // 上限到達エリアの初期化
   upperLimitMessageArea.innerText = "";
