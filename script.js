@@ -886,7 +886,7 @@ function getValidFullCache(monthKey) {
   const now = Date.now();
   const capCache = AVAILABLE_CAPACITY_DATA[monthKey];
   const resCache = MY_RESERVIONS[monthKey];
-  const attCache = MY_ATTENDED_DATES;
+  const attCache = MY_ATTENDED_DATES[monthKey];
 
   // すべてのキャッシュが存在し、かつ期限内かチェック
   if (!capCache || !resCache || !attCache.lastFetch) return null;
