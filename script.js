@@ -97,7 +97,7 @@ async function fetchInitialAppData() {
     const monthKey = `${year}-${String(month).padStart(2, '0')}`;
     sessionStorage.setItem('userInfo', JSON.stringify(json.userInfo.data));
     
-    saveToCache(monthKey, json.capacityData, json.userInfo);
+    saveToCache(json.capacityData, json.userInfo);
 
     switchPage(false, json.userInfo.data);
     renderReservationCalendar(today, 'loaded', json.capacityData, MY_RESERVIONS[monthKey].data, MY_ATTENDED_DATES.data);
@@ -212,7 +212,7 @@ async function registerUserClass(userId, displayName, classIndex, upperLimitNumb
       const monthKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
       
       // キャッシュを最新のデータで上書きし、lastFetchを「今」にする
-      saveToCache(monthKey, json.capacityData, json.userInfo);
+      saveToCache(json.capacityData, json.userInfo);
 
       alert("クラスの登録が完了しました！");
       switchPage(true, json.userInfo);
@@ -321,7 +321,7 @@ async function fetchAndRenderCapacity(date) {
     const json = await res.json();
     
     if (json.success) {
-      saveToCache(monthKey, json.capacityData, json.userInfo);
+      saveToCache(json.capacityData, json.userInfo);
       const fullCache = getValidFullCache(monthKey); // キャッシュから最新の形を取得
       renderReservationCalendar(date, 'loaded', fullCache.capacity, fullCache.reserved, fullCache.attended);
     }
@@ -846,7 +846,7 @@ function sendLiffMessage(messageText) {
 /**
  * データをキャッシュに保存する関数
  */
-function saveToCache(monthKey, capacityData, userInfoData) {
+function saveToCache(capacityData, userInfoData) {
   const now = Date.now();
 
 // 1. 残席情報を保存 (capacityData が {'2026-02-01': [...], '2026-03-01': [...]} の想定)
