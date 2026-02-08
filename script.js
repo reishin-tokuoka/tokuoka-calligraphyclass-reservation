@@ -350,7 +350,7 @@ async function fetchAndRenderCapacity(date) {
 // ------------------------------
 // 予約画面のカレンダー描画ロジック 
 // ------------------------------
-function renderReservationCalendar(date, status, capacityData = {}, myReservations = [], myAttendedDates = []) {
+function renderReservationCalendar(date, status, capacityData = {}, myReservations = [], myAttendedDates = { data: [], lastFetch: 0 }) {
   
   // 上限到達エリアの初期化
   upperLimitMessageArea.innerText = "";
@@ -390,7 +390,7 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
   const currentUser = getSessionUserInfo();
   const upperLimit = today.getMonth() === month ? currentUser.upperLimitNumberThisMonth : currentUser.upperLimitNumberNextMonth;
   const reservedCount = myReservations.length;
-  const AttendedCount = myAttendedDates.length;
+  const AttendedCount = myAttendedDates.data.length;
   // 受講済みで上限到達か
   const userAttendedLimitReached = AttendedCount === upperLimit;
   // 予約数と受講数の合計で上限到達か
@@ -413,7 +413,7 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
     if (currentDateOnly < today) {
       dayClass += ' inactive';
       // 受講済みチェック(過去日は授業なし判定と同じになるので、ここでチェック)
-      const myAttendedDateCheck = myAttendedDates.some(dateTimeString => dateTimeString.includes(dateString));
+      const myAttendedDateCheck = myAttendedDates.data.some(dateTimeString => dateTimeString.includes(dateString));
       if (myAttendedDateCheck) {
         dayClass += ' my-attended';
         isMyAttended = true;
