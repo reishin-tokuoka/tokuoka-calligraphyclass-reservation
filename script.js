@@ -744,6 +744,15 @@ async function executeCancellation(userId, reservationId) {
       
       if (json.success) {
         alert("キャンセルが完了しました。");
+
+        // 1. 最新のデータをキャッシュに保存 (複数月対応版の saveToCache を使用)
+        saveToCache(json.capacityData, json.userInfo);
+
+        // 2. セッション情報の更新 (上限数などの確認用)
+        if (json.userInfo && json.userInfo.data) {
+            sessionStorage.setItem('userInfo', JSON.stringify(json.userInfo.data));
+        }
+
         sendLiffMessage(`キャンセル：${json.cancelDateTime}`);
         // 選択エリアは非表示にする
         selectionDitailsModel.classList.add('hidden');
