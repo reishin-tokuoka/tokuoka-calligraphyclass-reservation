@@ -392,16 +392,14 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
     let isMyAttended = false;
     // capacityData は { 'YYYY-MM-DD': [{ ... }] } の形式
     const dayCapacity = capacityData[dateString] || [];
+    const myAttendedDateCheck = myAttendedDates.some(dateTimeString => dateTimeString.includes(dateString));
     
     // 過去
     if (currentDateOnly < today) {
       dayClass += ' inactive';
-      // 受講済みチェック(過去日は授業なし判定と同じになるので、ここでチェック)
-      const myAttendedDateCheck = myAttendedDates.some(dateTimeString => dateTimeString.includes(dateString));
-      if (myAttendedDateCheck) {
-        dayClass += ' my-attended';
-        isMyAttended = true;
-      }
+    } else if (myAttendedDateCheck) {
+      dayClass += ' my-attended';
+      isMyAttended = true;
     } else {
       // --- 授業なしの判定 ---
       if (dayCapacity.length === 0) {
