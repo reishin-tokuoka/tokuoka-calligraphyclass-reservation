@@ -506,12 +506,11 @@ function selectDate(dateString) {
   
   // 該当日の残席情報を AVAILABLE_CAPACITY_DATA から取得し、リストを描画
   const monthKey = `${CURRENT_SCREEN_DATE.getFullYear()}-${String(CURRENT_SCREEN_DATE.getMonth() + 1).padStart(2, '0')}`;
-  const monthCapacity = AVAILABLE_CAPACITY_DATA[monthKey].data || {};
+  const monthCapacity = AVAILABLE_CAPACITY_DATA[monthKey]?.data || {};
   const dayCapacity = monthCapacity[dateString] || [];
 
   // dateString を渡してボタンのデータ属性に持たせる
   renderAvailableClassesList(dayCapacity, dateString, monthKey);
-  // renderAvailableClassesList(dayCapacity.filter(item => item.remainingCapacity > 0), dateString); 
 }
 
 // ------------------------------
@@ -839,19 +838,36 @@ function sendLiffMessage(messageText) {
  */
 function saveToCache(monthKey, capacityData, userInfoData) {
   const now = Date.now();
-  // 1. 残席情報を月ごとに保存
-  AVAILABLE_CAPACITY_DATA[monthKey] = {
-    data: capacityData,
-    lastFetch: now
-  };
 
-  // 2. 予約情報を月ごとに保存
-  MY_RESERVIONS[monthKey] = {
-    data: userInfoData.myReservedDates,
-    lastFetch: now
-  };
+// 1. 残席情報を保存 (capacityData が {'2026-02-01': [...], '2026-03-01': [...]} の想定)
+  // 日付キーから月を特定して、月単位のキャッシュに振り分ける
+  Object.keys(capacityData).forEach(dateStr => {
+    const mKey = dateStr.substring(0, 7); // "YYYY-MM" を抽出
+    if (!AVAILABLE_CAPACITY_DATA[mKey]) {
+      AVAILABLE_CAPACITY_DATA[mKey] = { data: {}, lastFetch: now };
+    }
+    AVAILABLE_CAPACITY_DATA[mKey].data[dateStr] = capacityData[dateStr];
+    AVAILABLE_CAPACITY_DATA[mKey].lastFetch = now;
+  });
 
-  // 3. 出席情報は月をまたいで共通のことが多いので一括保存
+  // 2. 予約情報を月ごとに振り分け
+  // userInfoData.myReservedDates が [{ "2026-02-10 10:00": {...} }, ...] の想定
+  const reservedDates = userInfoData.myReservedDates || [];
+  
+  // キャッシュを一旦リセット（古い情報を混ぜないため）
+  // ※特定の月だけ更新したい場合はロジック調整が必要ですが、一括取得ならリセットが安全
+  reservedDates.forEach(resObj => {
+    const dateTimeStr = Object.keys(resObj)[0];
+    const mKey = dateTimeStr.substring(0, 7);
+    
+    if (!MY_RESERVIONS[mKey]) {
+      MY_RESERVIONS[mKey] = { data: [], lastFetch: now };
+    }
+    MY_RESERVIONS[mKey].data.push(resObj);
+    MY_RESERVIONS[mKey].lastFetch = now;
+  });
+
+  // 3. 出席情報は月をまたいで共通で保持
   MY_ATTENDED_DATES = {
     data: userInfoData.myAttendedDates || [],
     lastFetch: now
