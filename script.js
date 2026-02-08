@@ -374,8 +374,8 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
   const currentUser = getSessionUserInfo();
   const upperLimit = today.getMonth() === month ? currentUser.upperLimitNumberThisMonth : currentUser.upperLimitNumberNextMonth;
   const monthString = `${year}-${String(month + 1).padStart(2, '0')}`;
-  const reservedCount = myReservations.filter(dateTimeString => dateTimeString.includes(monthString)).length;
-  const AttendedCount = myAttendedDates.filter(dateTimeObj => {
+  const AttendedCount = myAttendedDates.filter(dateTimeString => dateTimeString.includes(monthString)).length;
+  const reservedCount = myReservations.filter(dateTimeObj => {
           const keys = Object.keys(dateTimeObj);
           return keys.some(key => key.includes(monthString));
         }).length;
