@@ -869,7 +869,7 @@ function saveToCache(monthKey, capacityData, userInfoData) {
 
   // 3. 出席情報は月をまたいで共通のことが多いので一括保存
   MY_ATTENDED_DATES = {
-    data: userInfoData.myAttendedDates || [],
+    data: userInfoData.myAttendedDates || { data: [], lastFetch: 0 },
     lastFetch: now
   };
 }
