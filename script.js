@@ -781,7 +781,6 @@ const showCustomModal = (title, message, onConfirm) => {
 
 const hideCustomModal = () => {
     customModal.classList.add('hidden');
-    customModal.style.display = 'none';
     currentConfirmCallback = null;
 };
 
