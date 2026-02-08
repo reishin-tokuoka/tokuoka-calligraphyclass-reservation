@@ -413,7 +413,7 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
     if (currentDateOnly < today) {
       dayClass += ' inactive';
       // 受講済みチェック(過去日は授業なし判定と同じになるので、ここでチェック)
-      const myAttendedDateCheck = myAttendedDates.data.some(dateTimeString => dateTimeString.includes(dateString));
+      const myAttendedDateCheck = myAttendedDates.some(dateTimeString => dateTimeString.includes(dateString));
       if (myAttendedDateCheck) {
         dayClass += ' my-attended';
         isMyAttended = true;
