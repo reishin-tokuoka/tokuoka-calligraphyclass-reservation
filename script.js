@@ -335,6 +335,7 @@ async function fetchAndRenderCapacity(date) {
 // ------------------------------
 function renderReservationCalendar(date, status, capacityData = {}, myReservations = [], myAttendedDates = []) {
   
+  console.log("描画データ確認:", { capacityData, myReservations, myAttendedDates});
   // 上限到達エリアの初期化
   upperLimitMessageArea.innerText = "";
   upperLimitMessageArea.classList.add("hidden");
