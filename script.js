@@ -598,7 +598,7 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
         buttonHtml = `
             <div class="reservation-area-container">
               <span class="status-text available-info">${item.startTime} - ${item.endTime}</span>
-              <span class="remaining-class-number"> 👤 残${item.remainingCapacity}席</span>
+              <span class="remaining-class-number"> 👤 残り${item.remainingCapacity}席</span>
             </div>
             <button class="class-select-button is-available-reserve" 
                     data-action="reserve" 
