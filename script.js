@@ -527,7 +527,7 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
 
   const monthReservation = MY_RESERVIONS[monthKey] || {};
   const reservedCount = monthReservation.length;
-  const AttendedCount = MY_ATTENDED_DATES.filter(item => item.includes(monthKey)).length;
+  const AttendedCount = MY_ATTENDED_DATES.data.filter(item => item.includes(monthKey)).length;
   const userLimitReached = (reservedCount + AttendedCount) == upperLimit;
 
   classes.forEach(item => {
