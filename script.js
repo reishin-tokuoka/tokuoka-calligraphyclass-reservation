@@ -682,11 +682,21 @@ async function handleReservation(lessonId, dateString, time, classNameText, user
 
         if (json.success) {
           alert("予約が完了しました！");
+
+          // 1. 最新のデータをキャッシュに保存 (複数月対応版の saveToCache を使用)
+          // GASのレスポンスに capacityData と userInfo が含まれている必要があります
+          saveToCache(json.capacityData, json.userInfo);
+
+          // 2. セッション情報の更新 (上限数などの確認用)
+          if (json.userInfo && json.userInfo.data) {
+              sessionStorage.setItem('userInfo', JSON.stringify(json.userInfo.data));
+          }
           sendLiffMessage(`稽古予約：${json.reservationDateTime}\n取消期限：${json.cancellableUntil}まで`);
           // 選択エリアは非表示にする
           selectionDitailsModel.classList.add('hidden');
           // 予約成功後、カレンダーを再描画して残席情報を更新
           fetchAndRenderCapacity(CURRENT_SCREEN_DATE);
+
         } else {
             alert("予約に失敗しました: " + (json.message || "残席がないか、上限を超えています。"));
         }
