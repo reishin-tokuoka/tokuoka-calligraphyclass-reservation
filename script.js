@@ -390,7 +390,7 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
   const currentUser = getSessionUserInfo();
   const upperLimit = today.getMonth() === month ? currentUser.upperLimitNumberThisMonth : currentUser.upperLimitNumberNextMonth;
   const reservedCount = myReservations.length;
-  const AttendedCount = myAttendedDates.data.length;
+  const AttendedCount = myAttendedDates.length;
   // 受講済みで上限到達か
   const userAttendedLimitReached = AttendedCount === upperLimit;
   // 予約数と受講数の合計で上限到達か
