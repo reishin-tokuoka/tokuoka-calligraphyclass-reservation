@@ -303,7 +303,7 @@ async function fetchAndRenderCapacity(date) {
 
   if (fullCache) {
     console.log("全データ有効なキャッシュがあるため、描画のみ実行");
-    updateClassInfoUI(currentUser, monthKey); // UIの文字更新
+    updateClassInfoUI(getSessionUserInfo(), monthKey); // UIの文字更新
     renderReservationCalendar(date, 'loaded', fullCache.capacity, fullCache.reserved, fullCache.attended);
     return;
   }
@@ -311,7 +311,7 @@ async function fetchAndRenderCapacity(date) {
   // キャッシュがない場合、カレンダーのUIを先に描画する (ローディング表示)
   renderReservationCalendar(date, 'loading');
   // ユーザのクラス・回数を画面上部に表示
-  updateClassInfoUI(currentUser, monthKey); // UIの文字更新
+  updateClassInfoUI(getSessionUserInfo(), monthKey); // UIの文字更新
 
   // 2. GASから統合されたカレンダー情報を取得する
   try {
@@ -904,7 +904,6 @@ function getValidFullCache(monthKey) {
   };
 }
 
-// ユーザ情報を画面上部に表示
 function updateClassInfoUI(currentUser, monthKey) {
   const currentDate = new Date();
   const currentMonthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`; 
