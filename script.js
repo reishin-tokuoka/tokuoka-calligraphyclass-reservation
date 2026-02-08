@@ -12,9 +12,10 @@ const CONFIG_KEY = 'reservation_config_data';
 // 予約画面用
 let AVAILABLE_CAPACITY_DATA = {}; // { 'YYYY-MM-DD': [{ startTime: 'HH:mm', className: '...', remainingCapacity: N }, ...] }
 let MY_RESERVIONS = {};
-let MY_ATTEDED_DATES = [];
+let MY_ATTENDED_DATES = [];
 let CURRENT_SCREEN_DATE = new Date(); // 予約画面のカレンダー表示月
 const MAX_RESERVABLE_MONTHS = 1; // (今月、来月)
+const CACHE_EXPIRATION_MS = 2 * 60 * 1000; // 2分(Workersが最新に反映されるまでで問題なし)
 
 // 予約画面用DOM要素
 const reservationArea = document.getElementById("reservationArea");
@@ -98,10 +99,10 @@ async function fetchInitialAppData() {
     
     AVAILABLE_CAPACITY_DATA[monthKey] = json.capacityData;
     MY_RESERVIONS[monthKey] = json.userInfo.myReservedDates;
-    MY_ATTEDED_DATES = json.userInfo.myAttendedDates;
+    MY_ATTENDED_DATES = json.userInfo.myAttendedDates;
 
     switchPage(false, json.userInfo.data);
-    renderReservationCalendar(today, 'loaded', json.capacityData, MY_RESERVIONS[monthKey], MY_ATTEDED_DATES);
+    renderReservationCalendar(today, 'loaded', json.capacityData, MY_RESERVIONS[monthKey], MY_ATTENDED_DATES);
     document.getElementById('loading').style.display = 'none';
 
   } else {
@@ -207,9 +208,13 @@ async function registerUserClass(userId, displayName, classIndex, upperLimitNumb
     const json = await res.json();
 
     if (json.success) {      
-      //セッションストレージにユーザ情報を保存
-      const sessionUserInfoJson = JSON.stringify(json.userInfo);
-      sessionStorage.setItem('userInfo', sessionUserInfoJson);
+      // セッションストレージには基本情報(data)を保存
+      sessionStorage.setItem('userInfo', JSON.stringify(json.userInfo.data));
+      const today = new Date();
+      const monthKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+      
+      // キャッシュを最新のデータで上書きし、lastFetchを「今」にする
+      saveToCache(monthKey, json.capacityData, json.userInfo);
 
       alert("クラスの登録が完了しました！");
       switchPage(true, json.userInfo);
@@ -287,26 +292,35 @@ function setupReservationScreen() {
  * @param {Date} date - 表示する月
  */
 async function fetchAndRenderCapacity(date) {
-  // 1. カレンダーのUIを先に描画する (ローディング表示)
-  renderReservationCalendar(date, 'loading');
-
-  // セッションストレージからユーザ情報取得
-  const currentUser = getSessionUserInfo();
   const year = date.getFullYear();
   const month = date.getMonth() + 1;
-  const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`; 
-  
+  const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+  // セッションストレージからユーザ情報取得
+  const currentUser = getSessionUserInfo();
+
+  // キャッシュをチェック
+  const fullCache = getValidFullCache(monthKey);
+
+  if (fullCache) {
+    console.log("全データ有効なキャッシュがあるため、描画のみ実行");
+    updateClassInfoUI(getSessionUserInfo(), monthKey); // UIの文字更新
+    renderReservationCalendar(date, 'loaded', fullCache.capacity, fullCache.reserved, fullCache.attended);
+    return;
+  }
+
+  // キャッシュがない場合、カレンダーのUIを先に描画する (ローディング表示)
+  renderReservationCalendar(date, 'loading');
   // ユーザのクラス・回数を画面上部に表示
   const currentDate = new Date();
   const currentMonthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`; 
   const upperLimitLabel = currentMonthKey === monthKey ? currentUser.upperLimitNumberThisMonth : currentUser.upperLimitNumberNextMonth;
   classInfo.innerHTML = `<span id='userName'>   👤 ${currentUser.displayName}</span><span id='userClassName'>  ┊  🖌️ ${currentUser.className} 🗓️ 月${upperLimitLabel}回</span>`;
+
   // 2. GASから統合されたカレンダー情報を取得する
   try {
 
     // ★ userId もパラメータに含める！
-    const url = `${WORKERS_BASE_URL}?year=${year}&month=${month}&userId=${currentUser.userId}`;
-    
+    const url = `${WORKERS_BASE_URL}?year=${year}&month=${month}&userId=${currentUser.userId}`;    
     // 1回の通信ですべて取得
     const res = await fetch(url);
     const json = await res.json();
@@ -317,7 +331,7 @@ async function fetchAndRenderCapacity(date) {
           const keys = Object.keys(dateTimeObj);
           return keys.some(key => key.includes(monthKey));
         }) || []; // Workersから返ってくる
-      MY_ATTEDED_DATES = json.userInfo.myAttendedDates.filter(dateTimeObj => {
+      MY_ATTENDED_DATES = json.userInfo.myAttendedDates.filter(dateTimeObj => {
           const keys = Object.keys(dateTimeObj);
           return keys.some(key => key.includes(monthKey));
         }) || []; // Workersから返ってくる
@@ -330,13 +344,12 @@ async function fetchAndRenderCapacity(date) {
         'loaded', 
         AVAILABLE_CAPACITY_DATA[monthKey], 
         MY_RESERVIONS[monthKey], 
-        MY_ATTEDED_DATES
+        MY_ATTENDED_DATES
       );
     }
   } catch (e) {
       console.error("カレンダー情報取得時の通信エラー", e);
   }
-
 }
 
 // ------------------------------
@@ -536,7 +549,7 @@ function renderAvailableClassesList(classes, dateString, monthKey) {
 
   const monthReservation = MY_RESERVIONS[monthKey] || {};
   const reservedCount = monthReservation.length;
-  const AttendedCount = MY_ATTEDED_DATES.filter(item => item.includes(monthKey)).length;
+  const AttendedCount = MY_ATTENDED_DATES.filter(item => item.includes(monthKey)).length;
   const userLimitReached = (reservedCount + AttendedCount) == upperLimit;
 
   classes.forEach(item => {
@@ -771,6 +784,7 @@ const showCustomModal = (title, message, onConfirm) => {
 
 const hideCustomModal = () => {
     customModal.classList.add('hidden');
+    customModal.style.display = 'none';
     currentConfirmCallback = null;
 };
 
@@ -839,4 +853,56 @@ function sendLiffMessage(messageText) {
       .catch((err) => {
           console.error('Error sending message:', err);
       });
+}
+
+/**
+ * データをキャッシュに保存する関数
+ */
+function saveToCache(monthKey, capacityData, userInfoData) {
+  const now = Date.now();
+  // 1. 残席情報を月ごとに保存
+  AVAILABLE_CAPACITY_DATA[monthKey] = {
+    data: capacityData,
+    lastFetch: now
+  };
+
+  // 2. 予約情報を月ごとに保存
+  MY_RESERVIONS[monthKey] = {
+    data: userInfoData.myReservedDates,
+    lastFetch: now
+  };
+
+  // 3. 出席情報は月をまたいで共通のことが多いので一括保存
+  MY_ATTENDED_DATES[monthKey] = {
+    data: userInfoData.myAttendedDates || [],
+    lastFetch: now
+  };
+}
+
+/**
+ * キャッシュが有効か判定し、有効なら一式を返す
+ */
+function getValidFullCache(monthKey) {
+  const now = Date.now();
+  const capCache = AVAILABLE_CAPACITY_DATA[monthKey];
+  const resCache = MY_RESERVIONS[monthKey];
+  const attCache = MY_ATTENDED_DATES;
+
+  // すべてのキャッシュが存在し、かつ期限内かチェック
+  if (!capCache || !resCache || !attCache.lastFetch) return null;
+
+  const isCapExpired = (now - capCache.lastFetch) > CACHE_EXPIRATION_MS;
+  const isResExpired = (now - resCache.lastFetch) > CACHE_EXPIRATION_MS;
+  const isAttExpired = (now - attCache.lastFetch) > CACHE_EXPIRATION_MS;
+
+  if (isCapExpired || isResExpired || isAttExpired) {
+    console.log(`キャッシュのいずれかが期限切れです: ${monthKey}`);
+    return null;
+  }
+
+  return {
+    capacity: capCache.data,
+    reserved: resCache.data,
+    attended: attCache.data
+  };
 }
