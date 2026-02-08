@@ -868,7 +868,7 @@ function saveToCache(monthKey, capacityData, userInfoData) {
   };
 
   // 3. 出席情報は月をまたいで共通のことが多いので一括保存
-  MY_ATTENDED_DATES[monthKey] = {
+  MY_ATTENDED_DATES = {
     data: userInfoData.myAttendedDates || [],
     lastFetch: now
   };
@@ -881,7 +881,7 @@ function getValidFullCache(monthKey) {
   const now = Date.now();
   const capCache = AVAILABLE_CAPACITY_DATA[monthKey];
   const resCache = MY_RESERVIONS[monthKey];
-  const attCache = MY_ATTENDED_DATES[monthKey];
+  const attCache = MY_ATTENDED_DATES;
 
   // すべてのキャッシュが存在し、かつ期限内かチェック
   if (!capCache || !resCache || !attCache.lastFetch) return null;
