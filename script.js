@@ -12,7 +12,7 @@ const CONFIG_KEY = 'reservation_config_data';
 // 予約画面用
 let AVAILABLE_CAPACITY_DATA = {}; // { 'YYYY-MM-DD': [{ startTime: 'HH:mm', className: '...', remainingCapacity: N }, ...] }
 let MY_RESERVIONS = {};
-let MY_ATTENDED_DATES = [];
+let MY_ATTENDED_DATES = { data: [], lastFetch: 0 };
 let CURRENT_SCREEN_DATE = new Date(); // 予約画面のカレンダー表示月
 const MAX_RESERVABLE_MONTHS = 1; // (今月、来月)
 const CACHE_EXPIRATION_MS = 2 * 60 * 1000; // 2分(Workersが最新に反映されるまでで問題なし)
