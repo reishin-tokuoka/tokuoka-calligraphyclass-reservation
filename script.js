@@ -505,7 +505,7 @@ function selectDate(dateString) {
   
   // 該当日の残席情報を AVAILABLE_CAPACITY_DATA から取得し、リストを描画
   const monthKey = `${CURRENT_SCREEN_DATE.getFullYear()}-${String(CURRENT_SCREEN_DATE.getMonth() + 1).padStart(2, '0')}`;
-  const monthCapacity = AVAILABLE_CAPACITY_DATA[monthKey] || {};
+  const monthCapacity = AVAILABLE_CAPACITY_DATA[monthKey].data || {};
   const dayCapacity = monthCapacity[dateString] || [];
 
   // dateString を渡してボタンのデータ属性に持たせる
