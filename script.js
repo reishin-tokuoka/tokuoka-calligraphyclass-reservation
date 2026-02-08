@@ -100,7 +100,7 @@ async function fetchInitialAppData() {
     saveToCache(monthKey, json.capacityData, json.userInfo);
 
     switchPage(false, json.userInfo.data);
-    renderReservationCalendar(today, 'loaded', json.capacityData, MY_RESERVIONS[monthKey], MY_ATTENDED_DATES);
+    renderReservationCalendar(today, 'loaded', json.capacityData, MY_RESERVIONS[monthKey].data, MY_ATTENDED_DATES.data);
     document.getElementById('loading').style.display = 'none';
 
   } else {
@@ -321,26 +321,9 @@ async function fetchAndRenderCapacity(date) {
     const json = await res.json();
     
     if (json.success) {
-      AVAILABLE_CAPACITY_DATA[monthKey] = json.capacityData || {};
-      MY_RESERVIONS[monthKey] = json.userInfo.myReservedDates.filter(dateTimeObj => {
-          const keys = Object.keys(dateTimeObj);
-          return keys.some(key => key.includes(monthKey));
-        }) || []; // Workersから返ってくる
-      MY_ATTENDED_DATES = json.userInfo.myAttendedDates.filter(dateTimeObj => {
-          const keys = Object.keys(dateTimeObj);
-          return keys.some(key => key.includes(monthKey));
-        }) || []; // Workersから返ってくる
-
-      console.log("Workersから全データを取得しました");
-      
-      // ★ 1回で完全なカレンダーを描画！
-      renderReservationCalendar(
-        date, 
-        'loaded', 
-        AVAILABLE_CAPACITY_DATA[monthKey], 
-        MY_RESERVIONS[monthKey], 
-        MY_ATTENDED_DATES
-      );
+      saveToCache(monthKey, json.capacityData, json.userInfo);
+      const fullCache = getValidFullCache(monthKey); // キャッシュから最新の形を取得
+      renderReservationCalendar(date, 'loaded', fullCache.capacity, fullCache.reserved, fullCache.attended);
     }
   } catch (e) {
       console.error("カレンダー情報取得時の通信エラー", e);
@@ -869,7 +852,7 @@ function saveToCache(monthKey, capacityData, userInfoData) {
 
   // 3. 出席情報は月をまたいで共通のことが多いので一括保存
   MY_ATTENDED_DATES = {
-    data: userInfoData.myAttendedDates || { data: [], lastFetch: 0 },
+    data: userInfoData.myAttendedDates || [],
     lastFetch: now
   };
 }
