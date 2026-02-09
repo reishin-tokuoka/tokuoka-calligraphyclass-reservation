@@ -15,7 +15,7 @@ let MY_RESERVIONS = {};
 let MY_ATTENDED_DATES = { data: [], lastFetch: 0 };
 let CURRENT_SCREEN_DATE = new Date(); // 予約画面のカレンダー表示月
 const MAX_RESERVABLE_MONTHS = 1; // (今月、来月)
-const CACHE_EXPIRATION_MS = 2 * 60 * 1000; // 2分(Workersが最新に反映されるまでで問題なし)
+const CACHE_EXPIRATION_MS = 3 * 60 * 1000; // 3分(Workersが最新に反映されるまでで問題なし)
 
 // 予約画面用DOM要素
 const reservationArea = document.getElementById("reservationArea");
