@@ -666,48 +666,51 @@ function confirmReservation(buttonElement) {
 // 予約確定処理（GASと通信）
 // ------------------------------
 async function handleReservation(lessonId, dateString, time, classNameText, userId) {
-    const payload = { 
-        mode: "makeReservation", 
-        userId: userId, 
-        lessonId: lessonId,
-        date: dateString, // YYYY-MM-DD
-        time: time,       // HH:mm
-        className: classNameText
-    };
-    const formBody = new URLSearchParams(payload);
+  const accessToken = liff.getAccessToken();
 
-    try {
-        const res = await fetch(GAS_BASE_URL, { 
-            method: "POST", 
-            headers: { "Content-Type": "application/x-www-form-urlencoded" }, 
-            body: formBody 
-        });
-        const json = await res.json();
+  const payload = { 
+      mode: "makeReservation", 
+      accessToken: accessToken,
+      userId: userId, 
+      lessonId: lessonId,
+      date: dateString, // YYYY-MM-DD
+      time: time,       // HH:mm
+      className: classNameText
+  };
+  const formBody = new URLSearchParams(payload);
 
-        if (json.success) {
-          alert("予約が完了しました！");
+  try {
+      const res = await fetch(GAS_BASE_URL, { 
+          method: "POST", 
+          headers: { "Content-Type": "application/x-www-form-urlencoded" }, 
+          body: formBody 
+      });
+      const json = await res.json();
 
-          // 1. 最新のデータをキャッシュに保存 (複数月対応版の saveToCache を使用)
-          // GASのレスポンスに capacityData と userInfo が含まれている必要があります
-          saveToCache(json.capacityData, json.userInfo);
+      if (json.success) {
+        alert("予約が完了しました！");
 
-          // 2. セッション情報の更新 (上限数などの確認用)
-          if (json.userInfo && json.userInfo.data) {
-              sessionStorage.setItem('userInfo', JSON.stringify(json.userInfo.data));
-          }
-          sendLiffMessage(`稽古予約：${json.reservationDateTime}\n取消期限：${json.cancellableUntil}まで`);
-          // 選択エリアは非表示にする
-          selectionDitailsModel.classList.add('hidden');
-          // 予約成功後、カレンダーを再描画して残席情報を更新
-          fetchAndRenderCapacity(CURRENT_SCREEN_DATE);
+        // 1. 最新のデータをキャッシュに保存 (複数月対応版の saveToCache を使用)
+        // GASのレスポンスに capacityData と userInfo が含まれている必要があります
+        saveToCache(json.capacityData, json.userInfo);
 
-        } else {
-            alert("予約に失敗しました: " + (json.message || "残席がないか、上限を超えています。"));
+        // 2. セッション情報の更新 (上限数などの確認用)
+        if (json.userInfo && json.userInfo.data) {
+            sessionStorage.setItem('userInfo', JSON.stringify(json.userInfo.data));
         }
-    } catch (e) {
-        alert("通信エラーが発生しました");
-        console.error("予約通信エラー:", e);
-    }
+        sendLiffMessage(`稽古予約：${json.reservationDateTime}\n取消期限：${json.cancellableUntil}まで`);
+        // 選択エリアは非表示にする
+        selectionDitailsModel.classList.add('hidden');
+        // 予約成功後、カレンダーを再描画して残席情報を更新
+        fetchAndRenderCapacity(CURRENT_SCREEN_DATE);
+
+      } else {
+          alert("予約に失敗しました: " + (json.message || "残席がないか、上限を超えています。"));
+      }
+  } catch (e) {
+      alert("通信エラーが発生しました");
+      console.error("予約通信エラー:", e);
+  }
 }
 
 // ------------------------------
@@ -739,7 +742,14 @@ function confirmReservationCancel(buttonElement) {
 // GASへのキャンセルAPIコール
 // ------------------------------
 async function executeCancellation(userId, reservationId) {
-  const payload = { mode: "cancelReservation", userId: userId, reservationId: reservationId };
+  const accessToken = liff.getAccessToken();
+
+  const payload = { 
+    mode: "cancelReservation",
+    accessToken: accessToken,
+    userId: userId,
+    reservationId: reservationId 
+  };
   const formBody = new URLSearchParams(payload);
 
   try {
