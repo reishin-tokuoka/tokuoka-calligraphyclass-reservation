@@ -813,14 +813,16 @@ function setupModalListeners() {
     // 承認ボタンの処理
     modalConfirmBtn.addEventListener('click', async () => {
         if (currentConfirmCallback) {
-            modalConfirmBtn.disabled = true;
+          modalConfirmBtn.disabled = true;
+          modalCancelBtn.disabled = true;
 
             try {
                 await currentConfirmCallback();
             } catch (error) {
                 console.error("Confirm callback failed:", error);
             } finally {
-                modalConfirmBtn.disabled = false;
+              modalConfirmBtn.disabled = false;
+              modalCancelBtn.disabled = false;
             }
         }
         hideCustomModal();
