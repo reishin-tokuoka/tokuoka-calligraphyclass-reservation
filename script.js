@@ -922,7 +922,7 @@ function getValidFullCache(monthKey) {
   const attCache = MY_ATTENDED_DATES;
 
   // すべてのキャッシュが存在し、かつ期限内かチェック
-  if (!capCache || !resCache || !attCache.lastFetch) return null;
+  if (!capCache?.lastFetch || !resCache?.lastFetch || !attCache?.lastFetch) return null;
 
   const isCapExpired = (now - capCache.lastFetch) > CACHE_EXPIRATION_MS;
   const isResExpired = (now - resCache.lastFetch) > CACHE_EXPIRATION_MS;
