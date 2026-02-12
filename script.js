@@ -909,7 +909,7 @@ function saveToCache(capacityData, userInfoData, monthKey = "") {
     MY_RESERVIONS[mKey].lastFetch = now;
   });
 
-  if (reservedArray.length == 0 && Object.keys(MY_RESERVIONS[monthKey]).length === 0) {
+  if (reservedArray.length == 0 && !MY_RESERVIONS[monthKey]) {
     MY_RESERVIONS[monthKey] = { data: [], lastFetch: now };
   }
 
