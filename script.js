@@ -212,7 +212,7 @@ async function registerUserClass(userId, displayName, classIndex, upperLimitNumb
       const monthKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
       
       // キャッシュを最新のデータで上書きし、lastFetchを「今」にする
-      saveToCache(json.capacityData, json.userInfo);
+      saveToCache(json.capacityData, json.userInfo, monthKey);
 
       alert("クラスの登録が完了しました！");
       switchPage(true, json.userInfo);
@@ -321,7 +321,7 @@ async function fetchAndRenderCapacity(date) {
     const json = await res.json();
     
     if (json.success) {
-      saveToCache(json.capacityData, json.userInfo);
+      saveToCache(json.capacityData, json.userInfo, monthKey);
       const fullCache = getValidFullCache(monthKey); // キャッシュから最新の形を取得
       renderReservationCalendar(date, 'loaded', fullCache.capacity, fullCache.reserved, fullCache.attended);
     }
@@ -692,7 +692,9 @@ async function handleReservation(lessonId, dateString, time, classNameText, user
 
         // 1. 最新のデータをキャッシュに保存 (複数月対応版の saveToCache を使用)
         // GASのレスポンスに capacityData と userInfo が含まれている必要があります
-        saveToCache(json.capacityData, json.userInfo);
+        const today = new Date();
+        const monthKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+        saveToCache(json.capacityData, json.userInfo, monthKey);
 
         // 2. セッション情報の更新 (上限数などの確認用)
         if (json.userInfo && json.userInfo.data) {
@@ -760,7 +762,9 @@ async function executeCancellation(userId, reservationId) {
         alert("キャンセルが完了しました。");
 
         // 1. 最新のデータをキャッシュに保存 (複数月対応版の saveToCache を使用)
-        saveToCache(json.capacityData, json.userInfo);
+        const today = new Date();
+        const monthKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+        saveToCache(json.capacityData, json.userInfo, monthKey);
 
         // 2. セッション情報の更新 (上限数などの確認用)
         if (json.userInfo && json.userInfo.data) {
@@ -870,7 +874,7 @@ function sendLiffMessage(messageText) {
 /**
  * データをキャッシュに保存する関数
  */
-function saveToCache(capacityData, userInfoData) {
+function saveToCache(capacityData, userInfoData, monthKey = "") {
   const now = Date.now();
 
   // 1. 残席情報を保存
@@ -904,6 +908,10 @@ function saveToCache(capacityData, userInfoData) {
     MY_RESERVIONS[mKey].data.push(resObj);
     MY_RESERVIONS[mKey].lastFetch = now;
   });
+
+  if (!reservedArray && !MY_RESERVIONS[monthKey]) {
+    MY_RESERVIONS[monthKey] = { data: [], lastFetch: now };
+  }
 
   // 3. 出席情報
   MY_ATTENDED_DATES = {
