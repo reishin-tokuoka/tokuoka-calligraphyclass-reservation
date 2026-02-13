@@ -91,7 +91,7 @@ async function fetchInitialAppData() {
     document.getElementById('loading').style.display = 'none';
     return;
   }
-  
+
   const url = `${WORKERS_BASE_URL}?year=${year}&month=${month}&userId=${userId}`;
   const response = await fetch(url);
   const json = await response.json();
@@ -106,7 +106,7 @@ async function fetchInitialAppData() {
     const monthKey = `${year}-${String(month).padStart(2, '0')}`;
     sessionStorage.setItem('userInfo', JSON.stringify(json.userInfo.data));
     
-    saveToCache(json.capacityData, json.userInfo);
+    saveToCache(json.capacityData, json.userInfo, monthKey);
 
     switchPage(false, json.userInfo.data);
     renderReservationCalendar(today, 'loaded', json.capacityData, MY_RESERVIONS[monthKey]?.data, MY_ATTENDED_DATES.data);
