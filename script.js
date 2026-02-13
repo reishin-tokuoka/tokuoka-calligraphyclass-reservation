@@ -81,6 +81,7 @@ async function fetchInitialAppData() {
   const today = new Date();
   const year = today.getFullYear();
   const month = today.getMonth() + 1;
+  const monthKey = `${year}-${String(month).padStart(2, '0')}`;
 
   // Workersへ一括問い合わせ
   const fullCache = getValidFullCache(monthKey);
@@ -103,10 +104,9 @@ async function fetchInitialAppData() {
     // 【既存ユーザー】
     console.log("登録済みユーザーです。カレンダーを表示します。");
     
-    const monthKey = `${year}-${String(month).padStart(2, '0')}`;
     sessionStorage.setItem('userInfo', JSON.stringify(json.userInfo.data));
     
-    saveToCache(json.capacityData, json.userInfo);
+    saveToCache(json.capacityData, json.userInfo, monthKey);
 
     switchPage(false, json.userInfo.data);
     renderReservationCalendar(today, 'loaded', json.capacityData, MY_RESERVIONS[monthKey]?.data, MY_ATTENDED_DATES.data);
