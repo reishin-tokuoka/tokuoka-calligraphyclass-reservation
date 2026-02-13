@@ -83,6 +83,15 @@ async function fetchInitialAppData() {
   const month = today.getMonth() + 1;
 
   // Workersへ一括問い合わせ
+  const fullCache = getValidFullCache(monthKey);
+
+  if (fullCache) {
+    switchPage(false, json.userInfo.data);
+    renderReservationCalendar(date, 'loaded', fullCache.capacity, fullCache.reserved, fullCache.attended);
+    document.getElementById('loading').style.display = 'none';
+    return;
+  }
+  
   const url = `${WORKERS_BASE_URL}?year=${year}&month=${month}&userId=${userId}`;
   const response = await fetch(url);
   const json = await response.json();
