@@ -106,7 +106,7 @@ async function fetchInitialAppData() {
     const monthKey = `${year}-${String(month).padStart(2, '0')}`;
     sessionStorage.setItem('userInfo', JSON.stringify(json.userInfo.data));
     
-    saveToCache(json.capacityData, json.userInfo, monthKey);
+    saveToCache(json.capacityData, json.userInfo);
 
     switchPage(false, json.userInfo.data);
     renderReservationCalendar(today, 'loaded', json.capacityData, MY_RESERVIONS[monthKey]?.data, MY_ATTENDED_DATES.data);
