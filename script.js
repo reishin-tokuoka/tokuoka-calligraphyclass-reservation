@@ -962,7 +962,7 @@ function saveToCache2(capacityData, userInfoData, monthKey = "") {
   });
 
   // 予約がない月の対応
-  if (!MY_RESERVIONS[monthKey]) {
+  if (!MY_RESERVIONS[monthKey] && monthKey !== "") {
     MY_RESERVIONS[monthKey] = { data: [], lastFetch: now };
   }
 
