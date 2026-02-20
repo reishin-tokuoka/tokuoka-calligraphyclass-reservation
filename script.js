@@ -927,7 +927,7 @@ function sendLiffMessage(messageText) {
 /**
  * データをキャッシュに保存する関数
  */
-function saveToCache(capacityData, userInfoData, monthKey = "") {
+function saveToCache2(capacityData, userInfoData, monthKey = "") {
   const now = Date.now();
 
   // 1. 残席情報を保存
@@ -977,7 +977,7 @@ function saveToCache(capacityData, userInfoData, monthKey = "") {
 /**
  * データをキャッシュに保存する関数
  */
-function saveToCache2(capacityData, userInfoData, configData, monthKey = "") {
+function saveToCache(capacityData, userInfoData, configData, monthKey = "") {
   const now = Date.now();
 
   // 1. 残席情報を保存
