@@ -145,11 +145,11 @@ async function fetchInitialAppData() {
     const isFresh = (Date.now() - json.userInfo.myAttendedDates.lastFetch) < 120000; // 2分以内なら「新鮮」とみなす
     if (!isFresh) {
       // 2分あればWorkersのデータも最新化されているはず
-      json = getWorkersDataJson(year, month, userId);
+      json = await getWorkersDataJson(year, month, userId);
     }
   } else {
     // ローカルストレージに登録されていない場合、Workersへ問い合わせ
-    json = getWorkersDataJson(year, month, userId);
+    json = await getWorkersDataJson(year, month, userId);
   }
   if (!json.success) throw new Error("データの取得に失敗しました。");
 
