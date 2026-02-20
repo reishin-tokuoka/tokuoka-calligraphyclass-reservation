@@ -896,16 +896,15 @@ function setupModalListeners() {
 // ==========================================
 function getSessionUserInfo() {
   const localStorageInfo = localStorage.getItem("APP_DATA_CACHE");
-  const userInfoJson = localStorageInfo.userInfo.data;
 
-  if (!userInfoJson) {
+  if (!localStorageInfo) {
     alert("ユーザ情報が取得できませんでした。一度、画面を閉じて開き直してください。");
     liff.closeWindow();
     return null;
   }
   // JSON文字列をオブジェクトに戻す
-  const userInfo = JSON.parse(userInfoJson);
-  return userInfo;
+  const localStorageData = JSON.parse(localStorageInfo);
+  return localStorageData.userInfo.data;
 }
 
 function sendLiffMessage(messageText) {
