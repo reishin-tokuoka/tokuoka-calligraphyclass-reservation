@@ -1106,5 +1106,6 @@ function updateClassInfoUI(currentUser, monthKey) {
 async function getWorkersDataJson(year, month, userId) {
   const url = `${WORKERS_BASE_URL}?year=${year}&month=${month}&userId=${userId}`;
   const response = await fetch(url);
-  return await response.json();
+  const json = await response.json();
+  return json;
 }
