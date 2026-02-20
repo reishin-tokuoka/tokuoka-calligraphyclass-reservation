@@ -361,7 +361,7 @@ async function fetchAndRenderCapacity(date) {
 
   if (fullCache) {
     console.log("全データ有効なキャッシュがあるため、描画のみ実行");
-    updateClassInfoUI(getSessionUserInfo(), monthKey); // UIの文字更新
+    updateClassInfoUI(currentUser, monthKey); // UIの文字更新
     renderReservationCalendar(date, 'loaded', fullCache.capacity, fullCache.reserved, fullCache.attended);
     return;
   }
@@ -369,7 +369,7 @@ async function fetchAndRenderCapacity(date) {
   // キャッシュがない場合、カレンダーのUIを先に描画する (ローディング表示)
   renderReservationCalendar(date, 'loading');
   // ユーザのクラス・回数を画面上部に表示
-  updateClassInfoUI(getSessionUserInfo(), monthKey); // UIの文字更新
+  updateClassInfoUI(currentUser, monthKey); // UIの文字更新
 
   // 2. GASから統合されたカレンダー情報を取得する
   try {
@@ -892,18 +892,20 @@ function setupModalListeners() {
 
 // ==========================================
 // セッションストレージに設定したユーザ情報を取得
+// ※セッションストレージからローカルストレージに変更
 // ==========================================
 function getSessionUserInfo() {
-    const userInfoJson = sessionStorage.getItem('userInfo');
+  const localStorageInfo = localStorage.getItem("APP_DATA_CACHE");
+  const userInfoJson = localStorageInfo.userInfo.data;
 
-    if (!userInfoJson) {
-      alert("ユーザ情報が取得できませんでした。一度、画面を閉じて開き直してください。");
-      liff.closeWindow();
-      return null;
-    }
-    // JSON文字列をオブジェクトに戻す
-    const userInfo = JSON.parse(userInfoJson);
-    return userInfo;
+  if (!userInfoJson) {
+    alert("ユーザ情報が取得できませんでした。一度、画面を閉じて開き直してください。");
+    liff.closeWindow();
+    return null;
+  }
+  // JSON文字列をオブジェクトに戻す
+  const userInfo = JSON.parse(userInfoJson);
+  return userInfo;
 }
 
 function sendLiffMessage(messageText) {
