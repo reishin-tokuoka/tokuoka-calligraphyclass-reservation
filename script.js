@@ -1027,6 +1027,7 @@ function saveToCache(capacityData, userInfoData, configData, monthKey = "") {
 
   // ローカルストレージ登録
   const appCache = {
+    success: true,
     capacityData: AVAILABLE_CAPACITY_DATA,  // 全体の残席情報
     config: configData == null ? cachedConfigData.config : configData,
     userInfo: {
