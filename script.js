@@ -979,8 +979,8 @@ function saveToCache(capacityData, userInfoData, configData, monthKey = "") {
     config: configData == null ? cachedConfigData.config : configData,
     userInfo: {
       data: userInfoData.data,
-      myAttendedDates: MY_ATTENDED_DATES,
-      myReservedDates: MY_RESERVIONS
+      myAttendedDates: userInfoData.myAttendedDates,
+      myReservedDates: userInfoData.myReservedDates
     }
   };
   localStorage.setItem("APP_DATA_CACHE", JSON.stringify(appCache));
@@ -991,21 +991,19 @@ function saveToCache(capacityData, userInfoData, configData, monthKey = "") {
  */
 function getValidFullCache(monthKey) {
   const now = Date.now();
-  const cachedJSON = localStorage.getItem("APP_DATA_CACHE");
-  if (!cachedJSON) return null;
-
-  const cacheObject = JSON.parse(cachedJSON);
-  const capCache = cacheObject.capacityData[monthKey];
-  const resCache = cacheObject.userInfo.myReservedDates[monthKey];
-  const attCache = cacheObject.userInfo.myAttendedDates;
+  const capCache = AVAILABLE_CAPACITY_DATA[monthKey];
+  const resCache = MY_RESERVIONS[monthKey];
+  const attCache = MY_ATTENDED_DATES;
 
   // すべてのキャッシュが存在し、かつ期限内かチェック
-  if (!cacheObject?.lastFetch) return null;
+  if (!capCache?.lastFetch || !resCache?.lastFetch || !attCache?.lastFetch) return null;
 
-  const isLocalStorageExpired = (now - cacheObject?.lastFetch) > CACHE_EXPIRATION_MS;
+  const isCapExpired = (now - capCache.lastFetch) > CACHE_EXPIRATION_MS;
+  const isResExpired = (now - resCache.lastFetch) > CACHE_EXPIRATION_MS;
+  const isAttExpired = (now - attCache.lastFetch) > CACHE_EXPIRATION_MS;
 
-  if (isLocalStorageExpired) {
-    console.log(`キャッシュが期限切れです: ${monthKey}`);
+  if (isCapExpired || isResExpired || isAttExpired) {
+    console.log(`キャッシュのいずれかが期限切れです: ${monthKey}`);
     return null;
   }
 
