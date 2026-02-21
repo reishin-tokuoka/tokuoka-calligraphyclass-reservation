@@ -107,7 +107,7 @@ async function fetchInitialAppData() {
     saveToCache(json.capacityData, json.userInfo, json.config, monthKey);
 
     switchPage(false, json.userInfo.data);
-    renderReservationCalendar(today, 'loaded', json.capacityData[monthKey]?.data, MY_RESERVIONS[monthKey]?.data, MY_ATTENDED_DATES.data);
+    renderReservationCalendar(today, 'loaded', AVAILABLE_CAPACITY_DATA[monthKey]?.data, MY_RESERVIONS[monthKey]?.data, MY_ATTENDED_DATES.data);
     document.getElementById('loading').style.display = 'none';
 
   } else {
