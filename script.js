@@ -381,7 +381,7 @@ async function fetchAndRenderCapacity(date) {
     const json = await res.json();
     
     if (json.success) {
-      saveToCache(json.capacityData, json.userInfo, monthKey);
+      saveToCache(json.capacityData, json.userInfo, json.config, monthKey);
       const fullCache = getValidFullCache(monthKey); // キャッシュから最新の形を取得
       renderReservationCalendar(date, 'loaded', fullCache.capacity, fullCache.reserved, fullCache.attended);
     }
@@ -980,7 +980,7 @@ function saveToCache(capacityData, userInfoData, configData, monthKey = "") {
     userInfo: {
       data: userInfoData.data,
       myAttendedDates: MY_ATTENDED_DATES.data,
-      myReservedDates: MY_RESERVIONS[monthKey].data
+      myReservedDates: MY_RESERVIONS[monthKey]?.data
     }
   };
   localStorage.setItem("APP_DATA_CACHE", JSON.stringify(appCache));
@@ -992,7 +992,7 @@ function saveToCache(capacityData, userInfoData, configData, monthKey = "") {
 function getValidFullCache(monthKey) {
   const now = Date.now();
   const cachedJSON = localStorage.getItem("APP_DATA_CACHE");
-  if (cachedJSON) return null;
+  if (!cachedJSON) return null;
 
   const cacheObject = JSON.parse(cachedJSON);
   const capCache = cacheObject.capacityData[monthKey];
