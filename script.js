@@ -972,9 +972,9 @@ function getInitDispFullCache(monthKey) {
   if (!cachedJSON) return null;
 
   const cacheObject = JSON.parse(cachedJSON);
-  const capCache = cacheObject.capacityData[monthKey];
-  const resCache = cacheObject.userInfo.myReservedDates[monthKey];
-  const attCache = cacheObject.userInfo.myAttendedDates;
+  const capCache = AVAILABLE_CAPACITY_DATA[monthKey];
+  const resCache = MY_RESERVIONS[monthKey];
+  const attCache = MY_ATTENDED_DATES;
 
   // すべてのキャッシュが存在し、かつ期限内かチェック
   if (!capCache?.lastFetch || !resCache?.lastFetch || !attCache?.lastFetch) return null;
