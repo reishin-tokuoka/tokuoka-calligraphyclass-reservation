@@ -968,7 +968,8 @@ function saveToCache(capacityData, userInfoData, configData, monthKey = "") {
 
   // 3. 出席情報
   MY_ATTENDED_DATES = {
-    data: userInfoData.myAttendedDates || []
+    data: userInfoData.myAttendedDates || [],
+    lastFetch: now 
   };
   
   const cachedConfigData = configData == null ? localStorage.getItem("APP_DATA_CACHE") : null;
