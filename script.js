@@ -972,7 +972,7 @@ function getInitDispFullCache(monthKey) {
 
   const cacheObject = JSON.parse(cachedJSON);
   const capCache = cacheObject.capacityData[monthKey];
-  const resCache = cacheObject.userInfo.myReservedDates[monthKey];
+  const resCache = cacheObject.userInfo.myReservedDates.filter(resObj => monthKey in resObj);
   const attCache = cacheObject.userInfo.myAttendedDates;
 
   // すべてのキャッシュが存在し、かつ期限内かチェック
