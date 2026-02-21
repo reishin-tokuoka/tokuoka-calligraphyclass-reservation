@@ -88,9 +88,8 @@ async function fetchInitialAppData() {
 
   if (cachedJSON) {
     json = getInitDispFullCache(monthKey);
-    const isFresh = (Date.now() - json.lastFetch) < 60000; // 2分以内なら「新鮮」とみなす
-    if (!isFresh) {
-      // 2分あればWorkersのデータも最新化されているはず
+    if (json == null) {
+      // 期限切れの場合、Workersから取得しに行く
       json = await getWorkersDataJson(userId);
     }
   } else {
