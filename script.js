@@ -12,7 +12,7 @@ const CONFIG_KEY = 'reservation_config_data';
 // 予約画面用
 let AVAILABLE_CAPACITY_DATA = {}; // { 'YYYY-MM-DD': [{ startTime: 'HH:mm', className: '...', remainingCapacity: N }, ...] }
 let MY_RESERVIONS = {};
-let MY_ATTENDED_DATES = { data: [] };
+let MY_ATTENDED_DATES = { data: [], lastFetch: 0 };
 let CURRENT_SCREEN_DATE = new Date(); // 予約画面のカレンダー表示月
 const MAX_RESERVABLE_MONTHS = 1; // (今月、来月)
 const CACHE_EXPIRATION_MS = 2 * 60 * 1000; // 3分(Workersが最新に反映されるまでで問題なし)
@@ -923,12 +923,12 @@ function saveToCache(capacityData, userInfoData, configData, monthKey = "") {
   const appCache = {
     success: true,
     lastFetch: now,
-    capacityData: AVAILABLE_CAPACITY_DATA,  // 全体の残席情報
+    capacityData: capacityData,  // 全体の残席情報
     config: configData == null ? cachedConfigData.config : configData,
     userInfo: {
       data: userInfoData.data,
-      myAttendedDates: MY_ATTENDED_DATES,
-      myReservedDates: MY_RESERVIONS
+      myAttendedDates: userInfoData.myAttendedDates,
+      myReservedDates: userInfoData.myReservedDates
     }
   };
   localStorage.setItem("APP_DATA_CACHE", JSON.stringify(appCache));
@@ -976,13 +976,10 @@ function getInitDispFullCache(monthKey) {
   const attCache = cacheObject.userInfo.myAttendedDates;
 
   // すべてのキャッシュが存在し、かつ期限内かチェック
-  if (!capCache?.lastFetch || !resCache?.lastFetch || !attCache?.lastFetch) return null;
+  if (!cacheObject?.lastFetch) return null;
 
-  const isCapExpired = (now - capCache.lastFetch) > CACHE_EXPIRATION_MS;
-  const isResExpired = (now - resCache.lastFetch) > CACHE_EXPIRATION_MS;
-  const isAttExpired = (now - attCache.lastFetch) > CACHE_EXPIRATION_MS;
-
-  if (isCapExpired || isResExpired || isAttExpired) {
+  const isCacheExpired = (now - cacheObject.lastFetch) > CACHE_EXPIRATION_MS;
+  if (isCacheExpired) {
     console.log(`キャッシュのいずれかが期限切れです: ${monthKey}`);
     return null;
   }
