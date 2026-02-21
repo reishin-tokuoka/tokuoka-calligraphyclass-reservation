@@ -994,8 +994,8 @@ function getInitDispFullCache(monthKey) {
     config: cacheObject.config,
     userInfo: {
       data: cacheObject.userInfo.data,
-      myAttendedDates: resCache.data,
-      myReservedDates: attCache.data
+      myAttendedDates: attCache.data,
+      myReservedDates: resCache.data
     }
   };
 }
