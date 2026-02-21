@@ -87,7 +87,7 @@ async function fetchInitialAppData() {
   let json = null;
 
   if (cachedJSON) {
-    json = JSON.parse(cachedJSON);
+    json = getInitDispFullCache(monthKey);
     const isFresh = (Date.now() - json.lastFetch) < 120000; // 2分以内なら「新鮮」とみなす
     if (!isFresh) {
       // 2分あればWorkersのデータも最新化されているはず
@@ -924,7 +924,7 @@ function saveToCache(capacityData, userInfoData, configData, monthKey = "") {
   const appCache = {
     success: true,
     lastFetch: now,
-    capacityData: AVAILABLE_CAPACITY_DATA[monthKey].data,  // 全体の残席情報
+    capacityData: AVAILABLE_CAPACITY_DATA,  // 全体の残席情報
     config: configData == null ? cachedConfigData.config : configData,
     userInfo: {
       data: userInfoData.data,
@@ -960,6 +960,44 @@ function getValidFullCache(monthKey) {
     capacity: capCache.data,
     reserved: resCache.data,
     attended: attCache.data
+  };
+}
+
+/**
+ * キャッシュが有効か判定し、有効なら一式を返す
+ */
+function getInitDispFullCache(monthKey) {
+  const now = Date.now();
+  const cachedJSON = localStorage.getItem("APP_DATA_CACHE");
+  if (!cachedJSON) return null;
+
+  const cacheObject = JSON.parse(cachedJSON);
+  const capCache = cacheObject.capacityData[monthKey];
+  const resCache = cacheObject.userInfo.myReservedDates[monthKey];
+  const attCache = cacheObject.userInfo.myAttendedDates;
+
+  // すべてのキャッシュが存在し、かつ期限内かチェック
+  if (!capCache?.lastFetch || !resCache?.lastFetch || !attCache?.lastFetch) return null;
+
+  const isCapExpired = (now - capCache.lastFetch) > CACHE_EXPIRATION_MS;
+  const isResExpired = (now - resCache.lastFetch) > CACHE_EXPIRATION_MS;
+  const isAttExpired = (now - attCache.lastFetch) > CACHE_EXPIRATION_MS;
+
+  if (isCapExpired || isResExpired || isAttExpired) {
+    console.log(`キャッシュのいずれかが期限切れです: ${monthKey}`);
+    return null;
+  }
+
+  return {
+    success: true,
+    lastFetch: cacheObject.lastFetch,
+    capacityData: capCache.data,  // 全体の残席情報
+    config: cacheObject.config,
+    userInfo: {
+      data: cacheObject.userInfo.data,
+      myAttendedDates: resCache.data,
+      myReservedDates: attCache.data
+    }
   };
 }
 
