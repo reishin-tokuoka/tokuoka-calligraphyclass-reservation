@@ -988,12 +988,12 @@ function getInitDispFullCache(monthKey) {
   return {
     success: true,
     lastFetch: cacheObject.lastFetch,
-    capacityData: capCache.data,  // 全体の残席情報
+    capacityData: capCache,  // 全体の残席情報
     config: cacheObject.config,
     userInfo: {
       data: cacheObject.userInfo.data,
-      myAttendedDates: attCache.data,
-      myReservedDates: resCache.data
+      myAttendedDates: attCache,
+      myReservedDates: resCache
     }
   };
 }
