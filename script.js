@@ -88,7 +88,7 @@ async function fetchInitialAppData() {
 
   if (cachedJSON) {
     json = getInitDispFullCache(monthKey);
-    const isFresh = (Date.now() - json.lastFetch) < 120000; // 2分以内なら「新鮮」とみなす
+    const isFresh = (Date.now() - json.lastFetch) < 30000; // 2分以内なら「新鮮」とみなす
     if (!isFresh) {
       // 2分あればWorkersのデータも最新化されているはず
       json = await getWorkersDataJson(year, month, userId);
