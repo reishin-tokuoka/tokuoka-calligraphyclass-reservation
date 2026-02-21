@@ -12,7 +12,7 @@ const CONFIG_KEY = 'reservation_config_data';
 // 予約画面用
 let AVAILABLE_CAPACITY_DATA = {}; // { 'YYYY-MM-DD': [{ startTime: 'HH:mm', className: '...', remainingCapacity: N }, ...] }
 let MY_RESERVIONS = {};
-let MY_ATTENDED_DATES = { data: [], lastFetch: 0 };
+let MY_ATTENDED_DATES = { data: [] };
 let CURRENT_SCREEN_DATE = new Date(); // 予約画面のカレンダー表示月
 const MAX_RESERVABLE_MONTHS = 1; // (今月、来月)
 const CACHE_EXPIRATION_MS = 2 * 60 * 1000; // 3分(Workersが最新に反映されるまでで問題なし)
@@ -142,7 +142,7 @@ async function fetchInitialAppData() {
 
   if (cachedJSON) {
     json = JSON.parse(cachedJSON);
-    const isFresh = (Date.now() - json.userInfo.myAttendedDates.lastFetch) < 120000; // 2分以内なら「新鮮」とみなす
+    const isFresh = (Date.now() - json.lastFetch) < 120000; // 2分以内なら「新鮮」とみなす
     if (!isFresh) {
       // 2分あればWorkersのデータも最新化されているはず
       json = await getWorkersDataJson(year, month, userId);
@@ -926,56 +926,6 @@ function sendLiffMessage(messageText) {
 /**
  * データをキャッシュに保存する関数
  */
-function saveToCache2(capacityData, userInfoData, monthKey = "") {
-  const now = Date.now();
-
-  // 1. 残席情報を保存
-  Object.keys(capacityData).forEach(dateStr => {
-    const mKey = dateStr.substring(0, 7); // "YYYY-MM"
-    if (!AVAILABLE_CAPACITY_DATA[mKey]) {
-      AVAILABLE_CAPACITY_DATA[mKey] = { data: {}, lastFetch: now };
-    }
-    AVAILABLE_CAPACITY_DATA[mKey].data[dateStr] = capacityData[dateStr];
-    AVAILABLE_CAPACITY_DATA[mKey].lastFetch = now;
-  });
-
-  // 2. 予約情報の保存（画像通りの配列構造に対応）
-  const reservedArray = userInfoData.myReservedDates || [];
-  
-  // 既存のキャッシュをクリア（一括更新のため）
-  // 全てのキーに対して data をリセット
-  Object.keys(MY_RESERVIONS).forEach(k => MY_RESERVIONS[k].data = []);
-
-  reservedArray.forEach(resObj => {
-    // resObj は { "2026-02-01 10:10": {...} } という形
-    const dateTimeStr = Object.keys(resObj)[0]; 
-    if (!dateTimeStr) return;
-
-    const mKey = dateTimeStr.substring(0, 7); // "YYYY-MM"
-    
-    if (!MY_RESERVIONS[mKey]) {
-      MY_RESERVIONS[mKey] = { data: [], lastFetch: now };
-    }
-    // 配列の中にオブジェクトをそのままプッシュ
-    MY_RESERVIONS[mKey].data.push(resObj);
-    MY_RESERVIONS[mKey].lastFetch = now;
-  });
-
-  // 予約がない月の対応
-  if (!MY_RESERVIONS[monthKey]) {
-    MY_RESERVIONS[monthKey] = { data: [], lastFetch: now };
-  }
-
-  // 3. 出席情報
-  MY_ATTENDED_DATES = {
-    data: userInfoData.myAttendedDates || [],
-    lastFetch: now
-  };
-}
-
-/**
- * データをキャッシュに保存する関数
- */
 function saveToCache(capacityData, userInfoData, configData, monthKey = "") {
   const now = Date.now();
 
@@ -983,10 +933,9 @@ function saveToCache(capacityData, userInfoData, configData, monthKey = "") {
   Object.keys(capacityData).forEach(dateStr => {
     const mKey = dateStr.substring(0, 7); // "YYYY-MM"
     if (!AVAILABLE_CAPACITY_DATA[mKey]) {
-      AVAILABLE_CAPACITY_DATA[mKey] = { data: {}, lastFetch: now };
+      AVAILABLE_CAPACITY_DATA[mKey] = { data: {} };
     }
     AVAILABLE_CAPACITY_DATA[mKey].data[dateStr] = capacityData[dateStr];
-    AVAILABLE_CAPACITY_DATA[mKey].lastFetch = now;
   });
 
   // 2. 予約情報の保存（画像通りの配列構造に対応）
@@ -1004,22 +953,20 @@ function saveToCache(capacityData, userInfoData, configData, monthKey = "") {
     const mKey = dateTimeStr.substring(0, 7); // "YYYY-MM"
     
     if (!MY_RESERVIONS[mKey]) {
-      MY_RESERVIONS[mKey] = { data: [], lastFetch: now };
+      MY_RESERVIONS[mKey] = { data: [] };
     }
     // 配列の中にオブジェクトをそのままプッシュ
     MY_RESERVIONS[mKey].data.push(resObj);
-    MY_RESERVIONS[mKey].lastFetch = now;
   });
 
   // 予約がない月の対応
   if (!MY_RESERVIONS[monthKey] && monthKey !== "") {
-    MY_RESERVIONS[monthKey] = { data: [], lastFetch: now };
+    MY_RESERVIONS[monthKey] = { data: [] };
   }
 
   // 3. 出席情報
   MY_ATTENDED_DATES = {
-    data: userInfoData.myAttendedDates || [],
-    lastFetch: now
+    data: userInfoData.myAttendedDates || []
   };
   
   const cachedConfigData = configData == null ? localStorage.getItem("APP_DATA_CACHE") : null;
@@ -1027,43 +974,16 @@ function saveToCache(capacityData, userInfoData, configData, monthKey = "") {
   // ローカルストレージ登録
   const appCache = {
     success: true,
+    lastFetch: now,
     capacityData: AVAILABLE_CAPACITY_DATA,  // 全体の残席情報
     config: configData == null ? cachedConfigData.config : configData,
     userInfo: {
       data: userInfoData.data,
-      myAttendedDates: MY_ATTENDED_DATES,
-      myReservedDates: MY_RESERVIONS
+      myAttendedDates: MY_ATTENDED_DATES[monthKey].data,
+      myReservedDates: MY_RESERVIONS.data
     }
   };
   localStorage.setItem("APP_DATA_CACHE", JSON.stringify(appCache));
-}
-
-/**
- * キャッシュが有効か判定し、有効なら一式を返す
- */
-function getValidFullCache2(monthKey) {
-  const now = Date.now();
-  const capCache = AVAILABLE_CAPACITY_DATA[monthKey];
-  const resCache = MY_RESERVIONS[monthKey];
-  const attCache = MY_ATTENDED_DATES;
-
-  // すべてのキャッシュが存在し、かつ期限内かチェック
-  if (!capCache?.lastFetch || !resCache?.lastFetch || !attCache?.lastFetch) return null;
-
-  const isCapExpired = (now - capCache.lastFetch) > CACHE_EXPIRATION_MS;
-  const isResExpired = (now - resCache.lastFetch) > CACHE_EXPIRATION_MS;
-  const isAttExpired = (now - attCache.lastFetch) > CACHE_EXPIRATION_MS;
-
-  if (isCapExpired || isResExpired || isAttExpired) {
-    console.log(`キャッシュのいずれかが期限切れです: ${monthKey}`);
-    return null;
-  }
-
-  return {
-    capacity: capCache.data,
-    reserved: resCache.data,
-    attended: attCache.data
-  };
 }
 
 /**
@@ -1080,14 +1000,12 @@ function getValidFullCache(monthKey) {
   const attCache = cacheObject.userInfo.myAttendedDates;
 
   // すべてのキャッシュが存在し、かつ期限内かチェック
-  if (!capCache?.lastFetch || !resCache?.lastFetch || !attCache?.lastFetch) return null;
+  if (!cacheObject?.lastFetch) return null;
 
-  const isCapExpired = (now - capCache.lastFetch) > CACHE_EXPIRATION_MS;
-  const isResExpired = (now - resCache.lastFetch) > CACHE_EXPIRATION_MS;
-  const isAttExpired = (now - attCache.lastFetch) > CACHE_EXPIRATION_MS;
+  const isLocalStorageExpired = (now - cacheObject?.lastFetch) > CACHE_EXPIRATION_MS;
 
-  if (isCapExpired || isResExpired || isAttExpired) {
-    console.log(`キャッシュのいずれかが期限切れです: ${monthKey}`);
+  if (isLocalStorageExpired) {
+    console.log(`キャッシュが期限切れです: ${monthKey}`);
     return null;
   }
 
