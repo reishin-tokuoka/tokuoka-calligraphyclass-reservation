@@ -996,7 +996,7 @@ function getValidFullCache(monthKey) {
 
   const cacheObject = JSON.parse(cachedJSON);
   const capCache = cacheObject.capacityData[monthKey];
-  const resCache = cacheObject.userInfo.myReservedDates[monthKey];
+  const resCache = cacheObject.userInfo.myReservedDates;
   const attCache = cacheObject.userInfo.myAttendedDates;
 
   // すべてのキャッシュが存在し、かつ期限内かチェック
@@ -1011,8 +1011,8 @@ function getValidFullCache(monthKey) {
 
   return {
     capacity: capCache.data,
-    reserved: resCache.data,
-    attended: attCache.data
+    reserved: resCache,
+    attended: attCache
   };
 }
 
