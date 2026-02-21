@@ -88,7 +88,7 @@ async function fetchInitialAppData() {
 
   if (cachedJSON) {
     json = getInitDispFullCache(monthKey);
-    const isFresh = (Date.now() - json.lastFetch) < 30000; // 2分以内なら「新鮮」とみなす
+    const isFresh = (Date.now() - json.lastFetch) < 120000; // 2分以内なら「新鮮」とみなす
     if (!isFresh) {
       // 2分あればWorkersのデータも最新化されているはず
       json = await getWorkersDataJson(year, month, userId);
@@ -107,7 +107,7 @@ async function fetchInitialAppData() {
     saveToCache(json.capacityData, json.userInfo, json.config, monthKey);
 
     switchPage(false, json.userInfo.data);
-    renderReservationCalendar(today, 'loaded', json.capacityData, MY_RESERVIONS[monthKey]?.data, MY_ATTENDED_DATES.data);
+    renderReservationCalendar(today, 'loaded', json.capacityData[monthKey]?.data, MY_RESERVIONS[monthKey]?.data, MY_ATTENDED_DATES.data);
     document.getElementById('loading').style.display = 'none';
 
   } else {
@@ -972,9 +972,9 @@ function getInitDispFullCache(monthKey) {
   if (!cachedJSON) return null;
 
   const cacheObject = JSON.parse(cachedJSON);
-  const capCache = AVAILABLE_CAPACITY_DATA[monthKey];
-  const resCache = MY_RESERVIONS[monthKey];
-  const attCache = MY_ATTENDED_DATES;
+  const capCache = cacheObject.capacityData[monthKey];
+  const resCache = cacheObject.userInfo.myReservedDates[monthKey];
+  const attCache = cacheObject.userInfo.myAttendedDates;
 
   // すべてのキャッシュが存在し、かつ期限内かチェック
   if (!capCache?.lastFetch || !resCache?.lastFetch || !attCache?.lastFetch) return null;
