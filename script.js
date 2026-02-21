@@ -979,8 +979,8 @@ function saveToCache(capacityData, userInfoData, configData, monthKey = "") {
     config: configData == null ? cachedConfigData.config : configData,
     userInfo: {
       data: userInfoData.data,
-      myAttendedDates: MY_ATTENDED_DATES.data,
-      myReservedDates: MY_RESERVIONS[monthKey]?.data
+      myAttendedDates: MY_ATTENDED_DATES,
+      myReservedDates: MY_RESERVIONS
     }
   };
   localStorage.setItem("APP_DATA_CACHE", JSON.stringify(appCache));
@@ -996,7 +996,7 @@ function getValidFullCache(monthKey) {
 
   const cacheObject = JSON.parse(cachedJSON);
   const capCache = cacheObject.capacityData[monthKey];
-  const resCache = cacheObject.userInfo.myReservedDates;
+  const resCache = cacheObject.userInfo.myReservedDates[monthKey];
   const attCache = cacheObject.userInfo.myAttendedDates;
 
   // すべてのキャッシュが存在し、かつ期限内かチェック
@@ -1011,8 +1011,8 @@ function getValidFullCache(monthKey) {
 
   return {
     capacity: capCache.data,
-    reserved: resCache,
-    attended: attCache
+    reserved: resCache.data,
+    attended: attCache.data
   };
 }
 
