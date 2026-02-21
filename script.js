@@ -928,8 +928,8 @@ function saveToCache(capacityData, userInfoData, configData, monthKey = "") {
     config: configData == null ? cachedConfigData.config : configData,
     userInfo: {
       data: userInfoData.data,
-      myAttendedDates: userInfoData.myAttendedDates,
-      myReservedDates: userInfoData.myReservedDates
+      myAttendedDates: MY_ATTENDED_DATES,
+      myReservedDates: MY_RESERVIONS
     }
   };
   localStorage.setItem("APP_DATA_CACHE", JSON.stringify(appCache));
