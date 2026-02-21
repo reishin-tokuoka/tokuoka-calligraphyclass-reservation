@@ -88,14 +88,14 @@ async function fetchInitialAppData() {
 
   if (cachedJSON) {
     json = getInitDispFullCache(monthKey);
-    const isFresh = (Date.now() - json.lastFetch) < 120000; // 2分以内なら「新鮮」とみなす
+    const isFresh = (Date.now() - json.lastFetch) < 60000; // 2分以内なら「新鮮」とみなす
     if (!isFresh) {
       // 2分あればWorkersのデータも最新化されているはず
-      json = await getWorkersDataJson(year, month, userId);
+      json = await getWorkersDataJson(userId);
     }
   } else {
     // ローカルストレージに登録されていない場合、Workersへ問い合わせ
-    json = await getWorkersDataJson(year, month, userId);
+    json = await getWorkersDataJson(userId);
   }
   if (!json.success) throw new Error("データの取得に失敗しました。");
 
@@ -1008,8 +1008,8 @@ function updateClassInfoUI(currentUser, monthKey) {
   classInfo.innerHTML = `<span id='userName'>   👤 ${currentUser.displayName}</span><span id='userClassName'>  ┊  🖌️ ${currentUser.className} 🗓️ 月${upperLimitLabel}回</span>`;
 }
 
-async function getWorkersDataJson(year, month, userId) {
-  const url = `${WORKERS_BASE_URL}?year=${year}&month=${month}&userId=${userId}`;
+async function getWorkersDataJson(userId) {
+  const url = `${WORKERS_BASE_URL}?userId=${userId}`;
   const response = await fetch(url);
   const json = await response.json();
   return json;
