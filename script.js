@@ -933,9 +933,10 @@ function saveToCache(capacityData, userInfoData, configData, monthKey = "") {
   Object.keys(capacityData).forEach(dateStr => {
     const mKey = dateStr.substring(0, 7); // "YYYY-MM"
     if (!AVAILABLE_CAPACITY_DATA[mKey]) {
-      AVAILABLE_CAPACITY_DATA[mKey] = { data: {} };
+      AVAILABLE_CAPACITY_DATA[mKey] = { data: {}, lastFetch: now };
     }
     AVAILABLE_CAPACITY_DATA[mKey].data[dateStr] = capacityData[dateStr];
+    AVAILABLE_CAPACITY_DATA[mKey].lastFetch = now;
   });
 
   // 2. 予約情報の保存（画像通りの配列構造に対応）
@@ -953,15 +954,16 @@ function saveToCache(capacityData, userInfoData, configData, monthKey = "") {
     const mKey = dateTimeStr.substring(0, 7); // "YYYY-MM"
     
     if (!MY_RESERVIONS[mKey]) {
-      MY_RESERVIONS[mKey] = { data: [] };
+      MY_RESERVIONS[mKey] = { data: [], lastFetch: now };
     }
     // 配列の中にオブジェクトをそのままプッシュ
     MY_RESERVIONS[mKey].data.push(resObj);
+    MY_RESERVIONS[mKey].lastFetch = now;
   });
 
   // 予約がない月の対応
   if (!MY_RESERVIONS[monthKey] && monthKey !== "") {
-    MY_RESERVIONS[monthKey] = { data: [] };
+    MY_RESERVIONS[monthKey] = { data: [], lastFetch: now };
   }
 
   // 3. 出席情報
