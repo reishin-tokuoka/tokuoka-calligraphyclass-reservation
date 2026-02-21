@@ -74,60 +74,6 @@ async function main() {
 /**
  * Workers KVから「ユーザー情報」「設定」「残席」「自分の予約」を一括で取得して描画する
  */
-async function fetchInitialAppData2() {
-  const profile = await liff.getProfile();
-  const userId = profile.userId;
-  const displayName = profile.displayName; // 新規登録時に使用
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = today.getMonth() + 1;
-  const monthKey = `${year}-${String(month).padStart(2, '0')}`;
-
-  // Workersへ一括問い合わせ
-  const fullCache = getValidFullCache(monthKey);
-
-  if (fullCache) {
-    switchPage(false, json.userInfo.data);
-    renderReservationCalendar(date, 'loaded', fullCache.capacity, fullCache.reserved, fullCache.attended);
-    document.getElementById('loading').style.display = 'none';
-    return;
-  }
-
-  const url = `${WORKERS_BASE_URL}?year=${year}&month=${month}&userId=${userId}`;
-  const response = await fetch(url);
-  const json = await response.json();
-
-  if (!json.success) throw new Error("データの取得に失敗しました。");
-
-  // --- 分岐点：Workersにユーザー情報があるか ---
-  if (json.userInfo && json.userInfo.data) {
-    // 【既存ユーザー】
-    console.log("登録済みユーザーです。カレンダーを表示します。");
-    
-    sessionStorage.setItem('userInfo', JSON.stringify(json.userInfo.data));
-    
-    saveToCache(json.capacityData, json.userInfo, monthKey);
-
-    switchPage(false, json.userInfo.data);
-    renderReservationCalendar(today, 'loaded', json.capacityData, MY_RESERVIONS[monthKey]?.data, MY_ATTENDED_DATES.data);
-    document.getElementById('loading').style.display = 'none';
-
-  } else {
-    // 【新規ユーザー】
-    console.log("未登録ユーザーです。授業選択画面を表示します。");
-    
-    // Workersから返ってきた config を使ってセットアップ
-    document.getElementById("user-select").classList.remove("hidden");
-    document.getElementById('loading').style.display = 'none';
-    
-    // お使いの setupClassSelect を呼び出し
-    setupClassSelect(userId, displayName, json.config);
-  }
-}
-
-/**
- * Workers KVから「ユーザー情報」「設定」「残席」「自分の予約」を一括で取得して描画する
- */
 async function fetchInitialAppData() {
   const profile = await liff.getProfile();
   const userId = profile.userId;
@@ -978,7 +924,7 @@ function saveToCache(capacityData, userInfoData, configData, monthKey = "") {
   const appCache = {
     success: true,
     lastFetch: now,
-    capacityData: AVAILABLE_CAPACITY_DATA,  // 全体の残席情報
+    capacityData: AVAILABLE_CAPACITY_DATA[monthKey].data,  // 全体の残席情報
     config: configData == null ? cachedConfigData.config : configData,
     userInfo: {
       data: userInfoData.data,
