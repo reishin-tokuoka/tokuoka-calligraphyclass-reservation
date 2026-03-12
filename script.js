@@ -18,7 +18,7 @@ const MAX_RESERVABLE_MONTHS = 1; // (今月、来月)
 const CACHE_EXPIRATION_MS = 2 * 60 * 1000; // 1分(Workersが最新に反映されるまでで問題なし)
 
 // 予約カレンダーの曜日初めの切り替え（日曜日：false、月曜日：true）
-const IS_FIRST_DAY_OF_THE_WEEK_MONDAY = false;
+const IS_FIRST_DAY_OF_THE_WEEK_MONDAY = true;
 
 // 予約画面用DOM要素
 const reservationArea = document.getElementById("reservationArea");
