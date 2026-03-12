@@ -17,6 +17,9 @@ let CURRENT_SCREEN_DATE = new Date(); // 予約画面のカレンダー表示月
 const MAX_RESERVABLE_MONTHS = 1; // (今月、来月)
 const CACHE_EXPIRATION_MS = 2 * 60 * 1000; // 1分(Workersが最新に反映されるまでで問題なし)
 
+// 予約カレンダーの曜日初めの切り替え（日曜日：false、月曜日：true）
+const IS_FIRST_DAY_OF_THE_WEEK_MONDAY = true;
+
 // 予約画面用DOM要素
 const reservationArea = document.getElementById("reservationArea");
 const calendarContainerRes = document.getElementById('calendar-container-res'); // 予約画面のカレンダーグリッド本体
@@ -366,13 +369,38 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
   nextMonthBtnRes.disabled = (firstDayOfMonth.getTime() >= maxReservableDateBoundary.getTime());
 
   // 【曜日のヘッダー作成】
-  const daysOfWeek = ['月', '火', '水', '木', '金', '土', '日'];
+  const daysOfWeek = IS_FIRST_DAY_OF_THE_WEEK_MONDAY ? ['月', '火', '水', '木', '金', '土', '日'] : ['日', '月', '火', '水', '木', '金', '土'];  
   let calendarHtml = '';
-  daysOfWeek.forEach(day => { calendarHtml += `<div class="calendar-day-header">${day}</div>`; });
+  // daysOfWeek.forEach(day => {
+  //   calendarHtml += `<div class="calendar-day-header">${day}</div>`;
+  // });
+  let day_of_week_red_css = "day_of_week_red";
+  let day_of_week_blue_css = "day_of_week_blue";
+  for (let i = 0; i < daysOfWeek.length; i++) {
+    let css_serector = '';
+    if (IS_FIRST_DAY_OF_THE_WEEK_MONDAY) {
+      if (i === 5) {
+        css_serector = day_of_week_blue_css;
+      } else if (i === 6) {
+        css_serector = day_of_week_red_css;
+      }
+    } else {
+      if (i === 6) {
+        css_serector = day_of_week_blue_css;
+      } else if (i === 0) {
+        css_serector = day_of_week_red_css;
+      }
+    }
+    calendarHtml += `<div class="calendar-day-header ${css_serector}">${daysOfWeek[i]}</div>`;
+  }
+
+  
 
   // 【1日の開始曜日までの空セルを作成】
   let startDayOfWeek = firstDayOfMonth.getDay();
-  startDayOfWeek = (startDayOfWeek === 0) ? 6 : startDayOfWeek - 1;
+  if (IS_FIRST_DAY_OF_THE_WEEK_MONDAY) {
+    startDayOfWeek = (startDayOfWeek === 0) ? 6 : startDayOfWeek - 1;
+  }
 
   for (let i = 0; i < startDayOfWeek; i++) {
       calendarHtml += '<div class="calendar-cell inactive"></div>';
