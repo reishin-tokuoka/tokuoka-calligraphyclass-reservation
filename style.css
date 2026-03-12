@@ -341,12 +341,12 @@ select:focus {
 }
 
 /* 日曜日 (赤字) */
-.calendar-day-header:nth-child(1) {
+.calendar-day-header:nth-child(7) {
     color: #dc3545; /* 赤 */
 }
 
 /* 土曜日 (青字) */
-.calendar-day-header:nth-child(7) {
+.calendar-day-header:nth-child(6) {
     color: #007bff; /* 青 */
 }
 
