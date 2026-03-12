@@ -366,7 +366,7 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
   nextMonthBtnRes.disabled = (firstDayOfMonth.getTime() >= maxReservableDateBoundary.getTime());
 
   // 【曜日のヘッダー作成】
-  const daysOfWeek = ['日', '月', '火', '水', '木', '金', '土'];
+  const daysOfWeek = ['月', '火', '水', '木', '金', '土', '日'];
   let calendarHtml = '';
   daysOfWeek.forEach(day => { calendarHtml += `<div class="calendar-day-header">${day}</div>`; });
 
