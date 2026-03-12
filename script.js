@@ -371,7 +371,7 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
   daysOfWeek.forEach(day => { calendarHtml += `<div class="calendar-day-header">${day}</div>`; });
 
   // 【1日の開始曜日までの空セルを作成】
-  const startDayOfWeek = firstDayOfMonth.getDay();
+  let startDayOfWeek = firstDayOfMonth.getDay();
   startDayOfWeek = (startDayOfWeek === 0) ? 6 : startDayOfWeek - 1;
 
   for (let i = 0; i < startDayOfWeek; i++) {
