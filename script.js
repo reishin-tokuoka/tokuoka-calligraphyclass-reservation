@@ -371,7 +371,7 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
   nextMonthBtnRes.disabled = (firstDayOfMonth.getTime() >= maxReservableDateBoundary.getTime());
 
   // 【曜日のヘッダー作成】
-  const daysOfWeek = FIRST_DAY_OF_THE_WEEK ? ['月', '火', '水', '木', '金', '土', '日'] : ['日', '月', '火', '水', '木', '金', '土'];  
+  const daysOfWeek = FIRST_DAY_OF_THE_WEEK === "月曜日" ? ['月', '火', '水', '木', '金', '土', '日'] : ['日', '月', '火', '水', '木', '金', '土'];  
   let calendarHtml = '';
   // daysOfWeek.forEach(day => {
   //   calendarHtml += `<div class="calendar-day-header">${day}</div>`;
@@ -400,7 +400,7 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
 
   // 【1日の開始曜日までの空セルを作成】
   let startDayOfWeek = firstDayOfMonth.getDay();
-  if (FIRST_DAY_OF_THE_WEEK == "月曜日") {
+  if (FIRST_DAY_OF_THE_WEEK === "月曜日") {
     startDayOfWeek = (startDayOfWeek === 0) ? 6 : startDayOfWeek - 1;
   }
 
