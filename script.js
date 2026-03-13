@@ -17,8 +17,8 @@ let CURRENT_SCREEN_DATE = new Date(); // 予約画面のカレンダー表示月
 const MAX_RESERVABLE_MONTHS = 1; // (今月、来月)
 const CACHE_EXPIRATION_MS = 2 * 60 * 1000; // 1分(Workersが最新に反映されるまでで問題なし)
 
-// 予約カレンダーの曜日初めの切り替え（日曜日：false、月曜日：true）
-const IS_FIRST_DAY_OF_THE_WEEK_MONDAY = true;
+// 予約カレンダーの曜日初めの切り替え用
+let FIRST_DAY_OF_THE_WEEK = "";
 
 // 予約画面用DOM要素
 const reservationArea = document.getElementById("reservationArea");
@@ -100,6 +100,8 @@ async function fetchInitialAppData() {
     json = await getWorkersDataJson(userId);
   }
   if (!json.success) throw new Error("データの取得に失敗しました。");
+
+  FIRST_DAY_OF_THE_WEEK = json.config.CALENDAR_INFO.FIRST_DAY_OF_WEEK;
 
   // --- 分岐点：Workersにユーザー情報があるか ---
   if (json.userInfo && json.userInfo.data) {
@@ -369,7 +371,7 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
   nextMonthBtnRes.disabled = (firstDayOfMonth.getTime() >= maxReservableDateBoundary.getTime());
 
   // 【曜日のヘッダー作成】
-  const daysOfWeek = IS_FIRST_DAY_OF_THE_WEEK_MONDAY ? ['月', '火', '水', '木', '金', '土', '日'] : ['日', '月', '火', '水', '木', '金', '土'];  
+  const daysOfWeek = FIRST_DAY_OF_THE_WEEK ? ['月', '火', '水', '木', '金', '土', '日'] : ['日', '月', '火', '水', '木', '金', '土'];  
   let calendarHtml = '';
   // daysOfWeek.forEach(day => {
   //   calendarHtml += `<div class="calendar-day-header">${day}</div>`;
@@ -378,7 +380,7 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
   let day_of_week_blue_css = "day_of_week_blue";
   for (let i = 0; i < daysOfWeek.length; i++) {
     let css_serector = '';
-    if (IS_FIRST_DAY_OF_THE_WEEK_MONDAY) {
+    if (FIRST_DAY_OF_THE_WEEK === "月曜日") {
       if (i === 5) {
         css_serector = day_of_week_blue_css;
       } else if (i === 6) {
@@ -398,7 +400,7 @@ function renderReservationCalendar(date, status, capacityData = {}, myReservatio
 
   // 【1日の開始曜日までの空セルを作成】
   let startDayOfWeek = firstDayOfMonth.getDay();
-  if (IS_FIRST_DAY_OF_THE_WEEK_MONDAY) {
+  if (FIRST_DAY_OF_THE_WEEK == "月曜日") {
     startDayOfWeek = (startDayOfWeek === 0) ? 6 : startDayOfWeek - 1;
   }
 
