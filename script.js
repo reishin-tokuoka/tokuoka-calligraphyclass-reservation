@@ -949,7 +949,7 @@ function saveToCache(capacityData, userInfoData, configData, monthKey = "") {
     lastFetch: now 
   };
   
-  const cachedConfigData = configData == null ? localStorage.getItem("APP_DATA_CACHE") : null;
+  const cachedConfigData = configData == null ? JSON.parse(localStorage.getItem("APP_DATA_CACHE")) : null;
 
   // ローカルストレージ登録
   const appCache = {
