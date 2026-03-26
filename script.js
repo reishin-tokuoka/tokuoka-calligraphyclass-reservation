@@ -2,7 +2,7 @@
 // 1. グローバル変数と定数
 // ====================================
 
-// 既存のグローバル変数
+// 既存のグローバル変数　
 const GAS_BASE_URL = "$$GAS_ENDPOINT_URL_PLACEHOLDER$$";
 const LIFF_ID = "$$LIFF_ID_PLACEHOLDER$$";
 const WORKERS_BASE_URL = "$$WORKERS_ENDPOINT_URL_PLACEHOLDER$$";
