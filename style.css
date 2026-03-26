@@ -341,12 +341,22 @@ select:focus {
 }
 
 /* 日曜日 (赤字) */
-.calendar-day-header:nth-child(1) {
+/* .calendar-day-header:nth-child(7) {
+    color: #dc3545;
+} */
+
+/* 土曜日 (青字) */
+/* .calendar-day-header:nth-child(6) {
+    color: #007bff;
+} */
+
+/* 日曜日 (赤字) */
+.calendar-day-header.day_of_week_red {
     color: #dc3545; /* 赤 */
 }
 
 /* 土曜日 (青字) */
-.calendar-day-header:nth-child(7) {
+.calendar-day-header.day_of_week_blue {
     color: #007bff; /* 青 */
 }
 
@@ -429,11 +439,22 @@ select:focus {
 
 #selectedDateText {
     color: #333;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
     font-size: 1.2em;
     margin-top: 0px;
     border-bottom: 1px solid #eee;
 }
+
+#courseName {
+    color: #333;
+    margin-top: 0px;
+    margin-bottom: 10px;
+    padding: 5px 0px;
+    font-size: 1.0em;
+    font-weight: bold;
+    border-bottom: 1px solid #eee;
+}
+
 
 #availableClassesList {
     display: flex;
@@ -539,7 +560,7 @@ select:focus {
 .calendar-cell.my-reserved {
     /* 予約済みの日は他の色を上書きして薄い水色にする */
     background-color: #e6f7ff; /* 薄い水色 */
-    border-top: 2px solid #4AC3FF; /* LINEブルーで上部に線 */
+    border-bottom: 2px solid #4AC3FF !important; /** LINEブルーで下部に線 */
     /* 予約可/満席の下線と共存させるため、border-bottomはそのまま残す */
 }
 
@@ -624,19 +645,24 @@ select:focus {
     border-bottom: 1px solid #eee;
 }
 
+.time-slot-flex-container {
+  display: flex;
+  justify-content: space-between; /* 両端に寄せる */
+  align-items: center;           /* 上下中央に揃える */
+}
+
 /* アクションボタンの共通スタイル */
 .class-select-button {
     padding: 10px 15px;
     border: none;
     border-radius: 6px;
-    font-size: 0.95em;
+    font-size: 0.85em;
     font-weight: bold;
     cursor: pointer;
     transition: background-color 0.2s;
     text-align: center;
     flex-grow: 1; /* ボタンがスペースを占有 */
-    width: 100%;
-    margin-top: 3px;
+    margin: 3px 5px 0px 10px;
 }
 
 /* 🟢 予約可能時: 「予約する」ボタン */
@@ -671,7 +697,7 @@ select:focus {
 
 /* 予約済み情報などの補助テキスト (今回はボタンに統合したため省略可能) */
 .status-text {
-    font-size: 0.95em;
+    font-size: 0.85em;
     white-space: wrap;
     font-weight: bold;
 }
@@ -681,7 +707,7 @@ select:focus {
   font-weight: bold;
 }
 .reserved-class {
-  font-size: 0.85em;
+  font-size: 0.75em;
   color: red;
   font-weight: bold;
 }
